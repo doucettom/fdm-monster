@@ -18,6 +18,7 @@ const { generateCorrelationToken } = require("../utils/correlation-token.util");
 const { ROLES } = require("../constants/authorization.constants");
 const { Floor } = require("../models/Floor");
 const PrinterService = require("../services/printer.service");
+const { Printer } = require("../entities/Printer");
 
 class PrinterController {
   /**
@@ -65,6 +66,11 @@ class PrinterController {
    */
   logger;
 
+  /**
+   * @type {EntityRepository<Printer>>}
+   */
+  printerRepository;
+
   constructor({
     printerSocketStore,
     testPrinterSocketStore,
@@ -77,6 +83,8 @@ class PrinterController {
     pluginRepositoryCache,
     floorStore,
     multerService,
+    em,
+    printerRepository,
   }) {
     this.logger = loggerFactory(PrinterController.name);
     this.printerCache = printerCache;
@@ -89,10 +97,12 @@ class PrinterController {
     this.pluginRepositoryCache = pluginRepositoryCache;
     this.floorStore = floorStore;
     this.multerService = multerService;
+    this.printerRepository = em.getRepository("Printer"); // printerRepository;
   }
 
   async list(req, res) {
-    const printers = await this.printerCache.listCachedPrinters(true);
+    // const printers = await this.printerCache.listCachedPrinters(true);
+    const printers = await this.printerRepository.find();
     // Test transient authentication error
     // throw new AuthenticationError();
     // Test transient authorization error

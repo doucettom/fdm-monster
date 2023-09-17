@@ -13,10 +13,6 @@ const updatePrinterEnabledRule = {
   enabled: "required|boolean",
 };
 
-const updateApiUsernameRule = {
-  currentUser: "required|string",
-};
-
 const updatePrinterDisabledReasonRule = {
   disabledReason: "required|nullable|string",
   enabled: "boolean",
@@ -25,6 +21,5 @@ const updatePrinterDisabledReasonRule = {
 module.exports = {
   createPrinterRules,
   updatePrinterEnabledRule,
-  updateApiUsernameRule,
   updatePrinterDisabledReasonRule,
 };

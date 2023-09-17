@@ -227,22 +227,6 @@ class PrinterService {
     return printer;
   }
 
-  async updateApiUsername(printerId, opAdminUserName) {
-    const update = {
-      currentUser: opAdminUserName,
-    };
-
-    await validateInput(update, updateApiUsernameRule);
-    await this.get(printerId);
-
-    const printer = await Printer.findByIdAndUpdate(printerId, update, {
-      new: true,
-      useFindAndModify: false,
-    });
-    this.eventEmitter2.emit(printerEvents.printerUpdated, { printer });
-    return printer;
-  }
-
   /**
    * @private
    * @param printer

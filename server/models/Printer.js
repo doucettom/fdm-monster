@@ -28,11 +28,6 @@ const PrinterSchema = new Schema({
     },
     required: true,
   },
-  // Auto-generated below
-  currentUser: {
-    type: String,
-    required: false,
-  },
   dateAdded: {
     type: Number,
     required: false,

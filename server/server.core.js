@@ -9,11 +9,25 @@ const helmet = require("helmet");
 const { interceptDatabaseError } = require("./middleware/database");
 const { validateWhitelistedIp, interceptRoles } = require("./middleware/global.middleware");
 const { initializePassportStrategies } = require("./middleware/passport");
+const { RequestContext } = require("@mikro-orm/core");
+const DITokens = require("./container.tokens");
+const { MikroORM } = require("@mikro-orm/better-sqlite");
+const { asValue } = require("awilix");
+const { Printer: PrinterORM } = require("./entities/Printer");
 
 async function setupServer() {
   const httpServer = express();
   const container = configureContainer();
   initializePassportStrategies(passport, container);
+
+  const mikroORM = await MikroORM.init();
+  const entityManager = mikroORM.em;
+  container.register({
+    [DITokens.orm]: asValue(mikroORM),
+    [DITokens.em]: asValue(entityManager),
+    printerRepository: asValue(entityManager.getRepository(PrinterORM)),
+    // [DITokens.em]: asFunction(mikroORM.em.fork.bind(mikroORM.em)).scoped(),
+  });
 
   httpServer
     .use(
@@ -41,6 +55,10 @@ async function setupServer() {
     .use(passport.authenticate(["jwt", "anonymous"], { session: false }))
     .use(scopePerRequest(container))
     .use(interceptDatabaseError)
+    .use(async (req, res, next) => {
+      const orm = await req.container.resolve(DITokens.orm);
+      return RequestContext.create(orm.em, next);
+    })
     // Global guards
     .use(validateWhitelistedIp)
     .use(interceptRoles);

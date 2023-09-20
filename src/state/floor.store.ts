@@ -1,19 +1,15 @@
-import { KeyDiffCache } from "../utils/cache/key-diff.cache";
+import { KeyDiffCache } from "@/utils/cache/key-diff.cache";
+import { FloorService2 } from "@/services/orm/floor.service";
+import { LoggerService } from "@/handlers/logger";
 
 /**
  * A generic cache for printer groups
  */
 export class FloorStore extends KeyDiffCache {
-  /**
-   * @type {LoggerService}
-   */
-  #logger;
-  /**
-   * @type {FloorService}
-   */
-  floorService;
+  floorService: FloorService2;
+  #logger: LoggerService;
 
-  constructor({ floorService, loggerFactory }) {
+  constructor({ floorService, loggerFactory }: { floorService: FloorService2; loggerFactory: (name: string) => LoggerService }) {
     super();
     this.floorService = floorService;
     this.#logger = loggerFactory(FloorStore.name);
@@ -25,12 +21,12 @@ export class FloorStore extends KeyDiffCache {
     if (!floors?.length) {
       this.#logger.log("Creating default floor as non existed");
       const floor = await this.floorService.createDefaultFloor();
-      await this.setKeyValue(floor._id, floor, true);
+      await this.setKeyValue(floor.id, floor, true);
       return;
     }
 
     const keyValues = floors.map((floor) => ({
-      key: floor._id.toString(),
+      key: floor.id.toString(),
       value: floor,
     }));
     await this.setKeyValuesBatch(keyValues, true);

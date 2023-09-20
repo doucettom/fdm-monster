@@ -58,14 +58,17 @@ import { LogDumpService } from "./services/logs-manager.service";
 import { CameraStreamService } from "./services/camera-stream.service";
 import { JwtService } from "./services/authentication/jwt.service";
 import { AuthService } from "./services/authentication/auth.service";
+import { SettingsService2 } from "@/services/orm/settings.service";
+import { FloorService2 } from "@/services/orm/floor.service";
 
-export function configureContainer() {
+export function configureContainer(legacyMode: boolean = true, providers: any = {}) {
   // Create the container and set the injectionMode to PROXY (which is also the default).
   const container = createContainer({
     injectionMode: InjectionMode.PROXY,
   });
 
   container.register({
+    ...providers,
     // -- asValue/asFunction constants --
     [DITokens.serverTasks]: asValue(ServerTasks),
     [DITokens.appDefaultRole]: asValue(ROLES.GUEST),
@@ -75,10 +78,13 @@ export function configureContainer() {
     }),
     [DITokens.socketFactory]: asClass(SocketFactory).transient(), // Factory function, transient on purpose!
 
+    // V1.6.0 capable services
+    [DITokens.settingsService]: legacyMode ? asClass(SettingsService) : asClass(SettingsService2),
+    [DITokens.floorService]: legacyMode ? asClass(FloorService).singleton() : asClass(FloorService2).singleton(),
+
     // -- asClass --
     [DITokens.serverHost]: asClass(ServerHost).singleton(),
     [DITokens.settingsStore]: asClass(SettingsStore).singleton(),
-    [DITokens.settingsService]: asClass(SettingsService),
     [DITokens.configService]: asClass(ConfigService),
     [DITokens.authService]: asClass(AuthService).singleton(),
     [DITokens.userService]: asClass(UserService),
@@ -116,7 +122,6 @@ export function configureContainer() {
     [DITokens.multerService]: asClass(MulterService).singleton(),
     [DITokens.printerService]: asClass(PrinterService),
     [DITokens.printerFilesService]: asClass(PrinterFilesService),
-    [DITokens.floorService]: asClass(FloorService).singleton(),
     [DITokens.yamlService]: asClass(YamlService),
     [DITokens.printCompletionService]: asClass(PrintCompletionService).singleton(),
     [DITokens.octoPrintApiService]: asClass(OctoPrintApiService).singleton(),

@@ -6,7 +6,6 @@ import { LoggerService } from "@/handlers/logger";
 import { TaskManagerService } from "@/services/task-manager.service";
 import { ServerTasks } from "@/tasks";
 import { MulterService } from "@/services/multer.service";
-import { SettingsService } from "@/services/settings.service";
 import { SettingsStore } from "@/state/settings.store";
 import { FloorStore } from "@/state/floor.store";
 import { PluginFirmwareUpdateService } from "@/services/octoprint/plugin-firmware-update.service";
@@ -18,13 +17,17 @@ import { RoleService } from "@/services/authentication/role.service";
 import { UserService } from "@/services/authentication/user.service";
 import { PluginRepositoryCache } from "@/services/octoprint/plugin-repository.cache";
 import { ClientBundleService } from "@/services/client-bundle.service";
+import { SettingsService2 } from "@/services/orm/settings.service";
+import { UseRequestContext } from "@mikro-orm/core";
+import { MikroORM } from "@mikro-orm/better-sqlite";
+import * as console from "console";
 
 export class BootTask {
   logger: LoggerService;
   taskManagerService: TaskManagerService;
   serverTasks: ServerTasks;
   settingsStore: SettingsStore;
-  settingsService: SettingsService;
+  settingsService: SettingsService2;
   multerService: MulterService;
   printerSocketStore: PrinterSocketStore;
   filesStore: FilesStore;
@@ -36,6 +39,7 @@ export class BootTask {
   pluginFirmwareUpdateService: PluginFirmwareUpdateService;
   clientBundleService: ClientBundleService;
   configService: ConfigService;
+  protected orm: MikroORM;
 
   constructor({
     loggerFactory,
@@ -54,6 +58,7 @@ export class BootTask {
     pluginFirmwareUpdateService,
     clientBundleService,
     configService,
+    orm,
   }) {
     this.serverTasks = serverTasks;
     this.settingsService = settingsService;
@@ -71,6 +76,7 @@ export class BootTask {
     this.logger = loggerFactory(BootTask.name);
     this.clientBundleService = clientBundleService;
     this.configService = configService;
+    this.orm = orm;
   }
 
   async runOnce() {
@@ -81,6 +87,7 @@ export class BootTask {
     await this.run();
   }
 
+  @UseRequestContext()
   async run() {
     try {
       await this.createConnection();

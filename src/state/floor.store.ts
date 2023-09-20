@@ -1,6 +1,7 @@
 import { KeyDiffCache } from "@/utils/cache/key-diff.cache";
 import { FloorService2 } from "@/services/orm/floor.service";
 import { LoggerService } from "@/handlers/logger";
+import { idType } from "@/shared.constants";
 
 /**
  * A generic cache for printer groups
@@ -45,17 +46,17 @@ export class FloorStore extends KeyDiffCache {
   async create(input) {
     /** @type {Floor} **/
     const floor = await this.floorService.create(input);
-    await this.setKeyValue(floor._id, floor, true);
+    await this.setKeyValue(floor.id, floor, true);
     return floor;
   }
 
-  async delete(floorId) {
+  async delete(floorId: idType) {
     const deleteResult = await this.floorService.delete(floorId);
     await this.deleteKeyValue(floorId);
     return deleteResult;
   }
 
-  async getFloor(floorId) {
+  async getFloor(floorId: idType) {
     let floor = await this.getValue(floorId);
     if (!!floor) return floor;
 
@@ -64,37 +65,37 @@ export class FloorStore extends KeyDiffCache {
     return floor;
   }
 
-  async update(floorId, input) {
+  async update(floorId: idType, input) {
     const floor = await this.floorService.update(floorId, input);
     await this.setKeyValue(floorId, floor, true);
     return floor;
   }
 
-  async updateName(floorId, updateSpec) {
+  async updateName(floorId: idType, updateSpec) {
     const floor = await this.floorService.updateName(floorId, updateSpec);
     await this.setKeyValue(floorId, floor, true);
     return floor;
   }
 
-  async updateFloorNumber(floorId, updateSpec) {
+  async updateFloorNumber(floorId: idType, updateSpec) {
     const floor = await this.floorService.updateFloorNumber(floorId, updateSpec);
     await this.setKeyValue(floorId, floor, true);
     return floor;
   }
 
-  async addOrUpdatePrinter(floorId, printerInFloor) {
+  async addOrUpdatePrinter(floorId: idType, printerInFloor) {
     const floor = await this.floorService.addOrUpdatePrinter(floorId, printerInFloor);
     await this.setKeyValue(floorId, floor, true);
     return floor;
   }
 
-  async removePrinter(floorId, printerInFloor) {
+  async removePrinter(floorId: idType, printerInFloor) {
     const floor = await this.floorService.removePrinter(floorId, printerInFloor);
     await this.deleteKeyValue(floorId);
     return floor;
   }
 
-  async removePrinterFromAnyFloor(printerId) {
+  async removePrinterFromAnyFloor(printerId: idType) {
     await this.floorService.deletePrinterFromAnyFloor(printerId);
 
     // Bit harsh, but we need to reload the entire store

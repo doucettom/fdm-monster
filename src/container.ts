@@ -60,6 +60,7 @@ import { JwtService } from "./services/authentication/jwt.service";
 import { AuthService } from "./services/authentication/auth.service";
 import { SettingsService2 } from "@/services/orm/settings.service";
 import { FloorService2 } from "@/services/orm/floor.service";
+import { FloorPositionService } from "@/services/orm/floor-position.service";
 
 export function configureContainer(legacyMode: boolean = true, providers: any = {}) {
   // Create the container and set the injectionMode to PROXY (which is also the default).
@@ -81,6 +82,7 @@ export function configureContainer(legacyMode: boolean = true, providers: any = 
     // V1.6.0 capable services
     [DITokens.settingsService]: legacyMode ? asClass(SettingsService) : asClass(SettingsService2),
     [DITokens.floorService]: legacyMode ? asClass(FloorService).singleton() : asClass(FloorService2).singleton(),
+    floorPositionService: legacyMode ? asValue(null) : asClass(FloorPositionService).singleton(),
 
     // -- asClass --
     [DITokens.serverHost]: asClass(ServerHost).singleton(),

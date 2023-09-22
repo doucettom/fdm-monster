@@ -1,13 +1,13 @@
 import { KeyDiffCache } from "@/utils/cache/key-diff.cache";
 import { FloorService2 } from "@/services/orm/floor.service";
 import { LoggerService } from "@/handlers/logger";
-import { idType } from "@/shared.constants";
+import { idType, IFloorService } from "@/services/orm/floor-service.interface";
 
 /**
  * A generic cache for printer groups
  */
 export class FloorStore extends KeyDiffCache {
-  floorService: FloorService2;
+  floorService: IFloorService;
   #logger: LoggerService;
 
   constructor({ floorService, loggerFactory }: { floorService: FloorService2; loggerFactory: (name: string) => LoggerService }) {
@@ -44,7 +44,6 @@ export class FloorStore extends KeyDiffCache {
   }
 
   async create(input) {
-    /** @type {Floor} **/
     const floor = await this.floorService.create(input);
     await this.setKeyValue(floor.id, floor, true);
     return floor;

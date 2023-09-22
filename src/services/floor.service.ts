@@ -1,25 +1,26 @@
-import { Floor } from "../models";
-import { validateInput } from "../handlers/validators";
-import { NotFoundException } from "../exceptions/runtime.exceptions";
+import { Floor } from "@/models";
+import { validateInput } from "@/handlers/validators";
+import { NotFoundException } from "@/exceptions/runtime.exceptions";
 import {
   createFloorRules,
-  updateFloorNameRules,
-  updateFloorNumberRules,
   printerInFloorRules,
   removePrinterInFloorRules,
+  updateFloorNameRules,
+  updateFloorNumberRules,
   updateFloorRules,
 } from "./validators/floor-service.validation";
+import { LoggerService } from "@/handlers/logger";
+import { PrinterCache } from "@/state/printer.cache";
+import { mongoIdType } from "@/shared.constants";
+import { IFloorService, UpdateFloorDto } from "@/services/orm/floor-service.interface";
 
-export class FloorService {
-  /**
-   * @type {PrinterCache}
-   */
-  printerCache;
-  #logger;
+export class FloorService implements IFloorService {
+  printerCache: PrinterCache;
+  logger: LoggerService;
 
-  constructor({ printerCache, loggerFactory }) {
+  constructor({ printerCache, loggerFactory }: { printerCache: PrinterCache; loggerFactory: (name: string) => LoggerService }) {
     this.printerCache = printerCache;
-    this.#logger = loggerFactory("PrinterFloorService");
+    this.logger = loggerFactory(FloorService.name);
   }
 
   /**
@@ -37,13 +38,16 @@ export class FloorService {
     for (const floor of floors) {
       if (!floor.printers?.length) continue;
 
-      const removedPositionPrinterIds = [];
-      const positionsKnown = {};
+      const removedPositionPrinterIds: mongoIdType[] = [];
+
+      // TODO this is prone to collisions
+      const positionsKnown: { [k: string]: any } = {};
       for (const fp of floor.printers) {
         // Remove orphans
-        const printerExists = printerIds.includes(fp.printerId.toString());
+        const stringPrinterId = fp.printerId.toString();
+        const printerExists = printerIds.includes(stringPrinterId);
         if (!printerExists) {
-          removedPositionPrinterIds.push(fp.printerId);
+          removedPositionPrinterIds.push(stringPrinterId);
           continue;
         }
 
@@ -60,7 +64,7 @@ export class FloorService {
       if (removedPositionPrinterIds?.length) {
         floor.printers = floor.printers.filter((fp) => !removedPositionPrinterIds.includes(fp.printerId));
         await floor.save();
-        this.#logger.warn(
+        this.logger.warn(
           `Found ${removedPositionPrinterIds} (floor printerIds) to be in need of removal for floor (duplicate position or non-existing printer)`
         );
       }
@@ -69,13 +73,13 @@ export class FloorService {
     return floors;
   }
 
-  async get(floorId, throwError = true) {
+  async get(floorId: mongoIdType, throwError = true) {
     const floor = await Floor.findOne({ _id: floorId });
     if (!floor && throwError) {
       throw new NotFoundException(`Floor with id ${floorId} does not exist.`);
     }
 
-    return floor;
+    return floor!;
   }
 
   async createDefaultFloor() {
@@ -96,7 +100,7 @@ export class FloorService {
     return Floor.create(validatedInput);
   }
 
-  async update(floorId, input) {
+  async update(floorId: mongoIdType, input: UpdateFloorDto) {
     const existingFloor = await this.get(floorId);
     const { name, floor, printers } = await validateInput(input, updateFloorRules);
     existingFloor.name = name;
@@ -105,26 +109,25 @@ export class FloorService {
     return await existingFloor.save();
   }
 
-  async updateName(floorId, input) {
+  async updateName(floorId: mongoIdType, floorName: string) {
     const floor = await this.get(floorId);
-
-    const { name } = await validateInput(input, updateFloorNameRules);
+    const { name } = await validateInput(floorName, updateFloorNameRules);
     floor.name = name;
     return await floor.save();
   }
 
-  async updateFloorNumber(floorId, input) {
+  async updateFloorNumber(floorId: mongoIdType, level: number) {
     const floor = await this.get(floorId);
-    const { floor: level } = await validateInput(input, updateFloorNumberRules);
-    floor.floor = level;
+    const { floor: validLevel } = await validateInput({ floor: level }, updateFloorNumberRules);
+    floor.floor = validLevel;
     return await floor.save();
   }
 
-  async getFloorsOfPrinterId(printerId) {
+  async getFloorsOfPrinterId(printerId: mongoIdType) {
     return Floor.find({ printers: { $elemMatch: { printerId } } });
   }
 
-  async deletePrinterFromAnyFloor(printerId) {
+  async deletePrinterFromAnyFloor(printerId: mongoIdType) {
     return Floor.updateMany(
       {},
       {
@@ -139,7 +142,7 @@ export class FloorService {
     );
   }
 
-  async addOrUpdatePrinter(floorId, printerInFloor) {
+  async addOrUpdatePrinter(floorId: mongoIdType, printerInFloor) {
     const floor = await this.get(floorId, true);
     const validInput = await validateInput(printerInFloor, printerInFloorRules);
 
@@ -160,9 +163,9 @@ export class FloorService {
     return floor;
   }
 
-  async removePrinter(floorId, input) {
+  async removePrinter(floorId: mongoIdType, printerId: mongoIdType) {
     const floor = await this.get(floorId, true);
-    const validInput = await validateInput(input, removePrinterInFloorRules);
+    const validInput = await validateInput({ printerId }, removePrinterInFloorRules);
 
     // Ensure printer exists
     await this.printerCache.getCachedPrinterOrThrowAsync(validInput.printerId);
@@ -174,7 +177,7 @@ export class FloorService {
     return floor;
   }
 
-  async delete(floorId) {
+  async delete(floorId: mongoIdType) {
     return Floor.deleteOne({ _id: floorId });
   }
 }

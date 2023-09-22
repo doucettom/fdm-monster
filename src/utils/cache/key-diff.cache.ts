@@ -1,8 +1,13 @@
+export type keyType = string | number;
 export class KeyDiffCache {
-  deletedKeys: string[] = [];
-  updatedKeys: string[] = [];
+  deletedKeys: keyType[] = [];
+  updatedKeys: keyType[] = [];
 
   protected keyValueStore: { [key: string]: any } = {};
+
+  private convertToKeyString(key: keyType) {
+    return key?.toString();
+  }
 
   public async getAllValues<T>(): Promise<Array<T>> {
     const keys = Object.keys(this.keyValueStore);
@@ -13,7 +18,7 @@ export class KeyDiffCache {
     return this.keyValueStore;
   }
 
-  public async getValue<T>(key: string): Promise<T> {
+  public async getValue<T>(key: keyType): Promise<T> {
     const keyString = key?.toString();
     if (!keyString?.length) {
       throw new Error("Key must be a non-empty serializable string");
@@ -53,7 +58,7 @@ export class KeyDiffCache {
     }
   }
 
-  protected async getValuesBatch<T>(keys: Array<string>): Promise<Array<T>> {
+  protected async getValuesBatch<T>(keys: Array<keyType>): Promise<Array<T>> {
     const keyStrings = keys.map((key) => key?.toString());
     if (keyStrings.some((key) => !key?.length)) {
       throw new Error("Key must be a non-empty serializable string, and one of them is not");
@@ -67,8 +72,8 @@ export class KeyDiffCache {
     return values as Array<T>;
   }
 
-  protected async setKeyValue<T>(key: string, value: T, markUpdated: boolean = true) {
-    const keyString = key?.toString();
+  protected async setKeyValue<T>(key: keyType, value: T, markUpdated: boolean = true) {
+    const keyString = this.convertToKeyString(key);
     if (!keyString?.length) {
       throw new Error("Key must be a non-empty serializable string");
     }
@@ -79,8 +84,8 @@ export class KeyDiffCache {
     }
   }
 
-  protected async deleteKeyValue(key: string, markDeleted: boolean = true) {
-    const keyString = key?.toString();
+  protected async deleteKeyValue(key: keyType, markDeleted: boolean = true) {
+    const keyString = this.convertToKeyString(key);
     if (!keyString?.length) {
       throw new Error("Key must be a non-empty serializable string");
     }
@@ -91,13 +96,13 @@ export class KeyDiffCache {
     }
   }
 
-  protected batchMarkDeleted(keys: string[]) {
+  protected batchMarkDeleted(keys: keyType[]) {
     for (const key of keys) {
       this.markDeleted(key);
     }
   }
 
-  protected markUpdated(key: string) {
+  protected markUpdated(key: keyType) {
     if (this.deletedKeys.includes(key)) {
       this.deletedKeys.splice(this.deletedKeys.indexOf(key), 1);
     }
@@ -106,7 +111,7 @@ export class KeyDiffCache {
     }
   }
 
-  protected markDeleted(key: string) {
+  protected markDeleted(key: keyType) {
     if (this.updatedKeys.includes(key)) {
       this.updatedKeys.splice(this.updatedKeys.indexOf(key), 1);
     }
@@ -120,7 +125,7 @@ export class KeyDiffCache {
     this.updatedKeys = [];
   }
 
-  private batchMarkUpdated(keys: string[]) {
+  private batchMarkUpdated(keys: keyType[]) {
     for (const key of keys) {
       this.markUpdated(key);
     }

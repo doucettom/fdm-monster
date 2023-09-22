@@ -1,11 +1,9 @@
 import { BaseEntity } from "@/entities/BaseEntity";
-import { Entity, ManyToOne, OptionalProps, Property } from "@mikro-orm/core";
-import { Floor } from "./Floor";
+import { Entity, OneToOne, Property, Rel } from "@mikro-orm/core";
+import { FloorPosition } from "@/entities/FloorPosition";
 
 @Entity()
 export class Printer extends BaseEntity {
-  [OptionalProps]?: "floor";
-
   @Property({ nullable: false })
   name!: string;
 
@@ -15,12 +13,12 @@ export class Printer extends BaseEntity {
   @Property({ nullable: false })
   printerURL!: string;
 
-  @Property({ nullable: false })
+  @Property({ nullable: false, default: true })
   enabled!: boolean;
 
-  @Property({ nullable: false })
-  disabledReason!: string;
+  @Property({ nullable: true, default: null })
+  disabledReason!: string | null;
 
-  @ManyToOne({ nullable: true })
-  floor!: Floor;
+  @OneToOne(() => FloorPosition, (p) => p.printer, { nullable: true })
+  position?: Rel<FloorPosition>;
 }

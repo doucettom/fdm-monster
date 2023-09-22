@@ -5,6 +5,7 @@ export const AppConstants = {
   SERVER_PORT_KEY: "SERVER_PORT",
   MONGO_KEY: "MONGO",
   DATABASE_PATH: "DATABASE_PATH",
+  DATABASE_FILE: "DATABASE_FILE",
 
   pm2ServiceName: "FDM",
   logAppName: "fdm-monster",

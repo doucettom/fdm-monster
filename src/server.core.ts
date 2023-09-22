@@ -21,6 +21,7 @@ export async function setupServer() {
   ensureDirExists(join(superRootPath(), dbFolder));
 
   const mikroORM = await MikroORM.init();
+  // Migrating should be done in the boot task next to mongoose migrations
   await mikroORM.getMigrator().up();
   const entityManager = mikroORM.em;
   const providers = {

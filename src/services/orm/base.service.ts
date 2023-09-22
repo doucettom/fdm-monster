@@ -1,32 +1,11 @@
 import { EntityManager, EntityRepository } from "@mikro-orm/better-sqlite";
-import { EntityName } from "@mikro-orm/core";
+import { EntityDTO, EntityName, FilterQuery, Loaded, wrap } from "@mikro-orm/core";
 import { BaseEntity } from "@/entities/BaseEntity";
-
-export interface IBaseService<T extends object> {
-  repository: EntityRepository<T>;
-  em: EntityManager;
-
-  list(): Promise<T[]>;
-  listPaged(page: IPagination): Promise<T[]>;
-  create(dto: T): Promise<T>;
-  delete(id: number): Promise<void>;
-}
-
-export const DEFAULT_PAGE: IPagination = {
-  page: 0,
-  pageSize: 50,
-};
-export interface IPagination {
-  page: number;
-  pageSize: number;
-}
-
-export interface Type<T = any> extends Function {
-  new (...args: any[]): T;
-}
+import { DEFAULT_PAGE, IBaseService, IPagination } from "@/services/orm/base.interface";
+import { sqliteIdType } from "@/shared.constants";
 
 export function BaseService<T extends BaseEntity>(entity: EntityName<T>) {
-  class BaseServiceHost implements IBaseService<T> {
+  abstract class BaseServiceHost implements IBaseService<T> {
     em: EntityManager;
     repository: EntityRepository<T>;
 
@@ -35,8 +14,10 @@ export function BaseService<T extends BaseEntity>(entity: EntityName<T>) {
       this.repository = em.getRepository(entity) as EntityRepository<T>;
     }
 
-    async get(id: number) {
-      return this.repository.findOneOrFail({ id });
+    abstract toDto(entity: Loaded<T>): EntityDTO<Loaded<T, never>>;
+
+    async get(id: sqliteIdType) {
+      return this.repository.findOneOrFail({ id } as FilterQuery<T>);
     }
 
     async list() {
@@ -47,14 +28,21 @@ export function BaseService<T extends BaseEntity>(entity: EntityName<T>) {
       return this.repository.findAll({ limit: page.pageSize, offset: page.pageSize * page.page });
     }
 
+    async update(id: sqliteIdType, updateDto: Partial<EntityDTO<Loaded<T, never>>>) {
+      const entity = await this.get(id);
+      wrap(entity).assign(updateDto);
+      await this.em.persistAndFlush(entity);
+      return entity;
+    }
+
     async create(dto: T) {
       const entity = this.repository.create(dto);
       await this.em.persistAndFlush(entity);
       return entity;
     }
 
-    async delete(id: number) {
-      const entity = await this.repository.findOneOrFail({ id });
+    async delete(id: sqliteIdType) {
+      const entity = await this.get(id);
       await this.em.removeAndFlush(entity);
     }
   }

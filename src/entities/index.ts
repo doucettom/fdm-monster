@@ -7,5 +7,19 @@ import { FloorPosition } from "./floor-position.entity";
 import { Printer } from "./printer.entity";
 import { Role } from "./role.entity";
 import { Settings } from "./settings.entity";
+import { PrintCompletion } from "./print-completion.entity";
+import { RefreshToken } from "./refresh-token.entity";
 
-export { User, Permission, CameraStream, CustomGCode, Floor, FloorPosition, Printer, Role, Settings };
+export {
+  User,
+  Permission,
+  RefreshToken,
+  CameraStream,
+  CustomGCode,
+  Floor,
+  FloorPosition,
+  Printer,
+  Role,
+  Settings,
+  PrintCompletion,
+};

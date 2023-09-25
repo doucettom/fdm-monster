@@ -1,6 +1,7 @@
 import { IsAlphanumeric } from "class-validator";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { FloorPosition } from "./floor-position.entity";
+import { PrintCompletion } from "@/entities/print-completion.entity";
 
 @Entity()
 export class Printer {
@@ -41,4 +42,7 @@ export class Printer {
   floorPosition?: Relation<FloorPosition>;
   @Column({ nullable: true })
   floorPositionId!: number;
+
+  @OneToMany(() => PrintCompletion, (pc) => pc.printer)
+  printCompletions!: Relation<PrintCompletion>[];
 }

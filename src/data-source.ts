@@ -10,13 +10,15 @@ import { Floor } from "@/entities/floor.entity";
 import { FloorPosition } from "@/entities/floor-position.entity";
 import { Printer } from "@/entities/printer.entity";
 import { Settings } from "@/entities/settings.entity";
-import { User } from "@/entities";
+import { Permission, PrintCompletion, RefreshToken, User } from "@/entities";
 import { CameraStream } from "@/entities/camera-stream.entity";
 import { CameraStream1695588105431 } from "@/migrations/1695588105431-CameraStream";
 import { CustomGCode } from "@/entities/custom-gcode.entity";
 import { CustomGCode1695590022741 } from "@/migrations/1695590022741-CustomGCode";
 import { Role } from "@/entities/role.entity";
 import { Role1695591973315 } from "@/migrations/1695591973315-Role";
+import { PrintCompletionRefreshToken1695672874400 } from "@/migrations/1695672874400-PrintCompletion_RefreshToken";
+import { PrinterPrintCompletions1695673511521 } from "@/migrations/1695673511521-PrinterPrintCompletions";
 
 dotenv.config({
   path: join(superRootPath(), ".env"),
@@ -33,7 +35,27 @@ export const AppDataSource = new DataSource({
   database: dbName,
   synchronize: false,
   logging: false,
-  entities: [Floor, FloorPosition, Printer, Settings, User, CameraStream, CustomGCode, Role],
-  migrations: [Init1695584662738, User1695586482740, CameraStream1695588105431, CustomGCode1695590022741, Role1695591973315],
+  entities: [
+    Floor,
+    FloorPosition,
+    Printer,
+    Settings,
+    User,
+    CameraStream,
+    CustomGCode,
+    Role,
+    Permission,
+    RefreshToken,
+    PrintCompletion,
+  ],
+  migrations: [
+    Init1695584662738,
+    User1695586482740,
+    CameraStream1695588105431,
+    CustomGCode1695590022741,
+    Role1695591973315,
+    PrintCompletionRefreshToken1695672874400,
+    PrinterPrintCompletions1695673511521,
+  ],
   subscribers: [],
 });

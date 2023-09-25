@@ -3,16 +3,16 @@ import { Floor } from "./floor.entity";
 import { Printer } from "./printer.entity";
 
 @Entity()
-@Unique(["posX", "posY", "floorId"])
+@Unique(["x", "y", "floorId"])
 export class FloorPosition {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column()
-  posX!: number;
+  x!: number;
 
   @Column()
-  posY!: number;
+  y!: number;
 
   // onDelete set null https://stackoverflow.com/questions/55098023/typeorm-cascade-option-cascade-ondelete-onupdate
   @ManyToOne(() => Floor, {

@@ -1,10 +1,10 @@
 import { EntityManager, EntityRepository } from "@mikro-orm/better-sqlite";
-import { EntityDTO, EntityName, FilterQuery, Loaded, wrap } from "@mikro-orm/core";
-import { BaseEntity } from "@/entities/BaseEntity";
+import { EntityDTO, EntityName, FilterQuery, FindOptions, Loaded, wrap } from "@mikro-orm/core";
+import { BaseEntity } from "@/entities/mikro/BaseEntity";
 import { DEFAULT_PAGE, IBaseService, IPagination } from "@/services/orm/base.interface";
 import { sqliteIdType } from "@/shared.constants";
 
-export function BaseService<T extends BaseEntity>(entity: EntityName<T>) {
+export function BaseService<T extends BaseEntity, DTO>(entity: EntityName<T>) {
   abstract class BaseServiceHost implements IBaseService<T> {
     em: EntityManager;
     repository: EntityRepository<T>;
@@ -14,35 +14,35 @@ export function BaseService<T extends BaseEntity>(entity: EntityName<T>) {
       this.repository = em.getRepository(entity) as EntityRepository<T>;
     }
 
-    abstract toDto(entity: Loaded<T>): EntityDTO<Loaded<T, never>>;
+    abstract toDto<P extends string = never>(entity: Loaded<T, P>): DTO;
 
-    async get(id: sqliteIdType) {
-      return this.repository.findOneOrFail({ id } as FilterQuery<T>);
+    async get<P extends string = never>(id: sqliteIdType) {
+      return this.repository.findOneOrFail<P>({ id } as FilterQuery<T>);
     }
 
-    async list() {
-      return this.repository.findAll();
+    async list<P extends string = never>(options?: FindOptions<T, P>) {
+      return this.repository.findAll(options);
     }
 
-    async listPaged(page: IPagination = DEFAULT_PAGE) {
-      return this.repository.findAll({ limit: page.pageSize, offset: page.pageSize * page.page });
+    async listPaged<P extends string = never>(page: IPagination = DEFAULT_PAGE, options?: FindOptions<T, P>) {
+      return this.repository.findAll({ limit: page.pageSize, offset: page.pageSize * page.page, ...options });
     }
 
-    async update(id: sqliteIdType, updateDto: Partial<EntityDTO<Loaded<T, never>>>) {
-      const entity = await this.get(id);
+    async update<P extends string = never>(id: sqliteIdType, updateDto: Partial<EntityDTO<Loaded<T, P>>>) {
+      const entity = await this.get<P>(id);
       wrap(entity).assign(updateDto);
       await this.em.persistAndFlush(entity);
       return entity;
     }
 
-    async create(dto: T) {
-      const entity = this.repository.create(dto);
+    async create<P extends string = never>(dto: T) {
+      const entity = this.repository.create<P>(dto);
       await this.em.persistAndFlush(entity);
       return entity;
     }
 
-    async delete(id: sqliteIdType) {
-      const entity = await this.get(id);
+    async delete<P extends string = never>(id: sqliteIdType) {
+      const entity = await this.get<P>(id);
       await this.em.removeAndFlush(entity);
     }
   }

@@ -6,11 +6,15 @@
   "description": "FDM Monster is a bulk OctoPrint manager to set up, configure and monitor 3D printers. Our aim is to provide extremely optimized websocket performance and reliability.",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "concurrently \"npm run watch-compile\" \"npm run watch-dev\"",
-    "watch-compile": "swc src -w --out-dir dist",
+    "dev": "concurrently \"yarn build:watch\" \"yarn watch-dev\"",
     "watch-dev": "cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/index.js",
+    "console:mikro": "yarn build && cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/consoles/sqlite-mikro.js",
+    "console:torm": "yarn build && cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/consoles/sqlite-torm.js",
+    "console:migrate": "yarn build && cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/consoles/typeorm-migrate.js",
+    "console:generate": "yarn build && cross-env NODE_ENV=development node ./dist/consoles/typeorm-generate.js",
     "build": "swc src -d dist",
-    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "build:watch": "swc src -w -d dist",
+    "start": "ts-node src/index.ts",
     "migration:create": "migrate-mongo create printer-remove-sortindex",
     "migration:up": "migrate-mongo up",
     "migration:down": "migrate-mongo down",
@@ -23,7 +27,12 @@
     "cov:show": "./coverage/lcov-report/index.html",
     "orm": "mikro-orm",
     "orm:up": "mikro-orm migration:up",
-    "orm:create": "mikro-orm migration:create"
+    "orm:create": "mikro-orm migration:create",
+    "orm:down": "mikro-orm migration:down",
+    "torm": "ts-node --swc -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm:generate": "yarn torm migration:generate -d src/data-source.ts --pretty src/migrations/CustomGCode",
+    "typeorm:migrate": "yarn torm migration:run -d src/data-source.ts",
+    "typeorm:revert": "yarn torm migration:revert -d src/data-source.ts"
   },
   "mikro-orm": {
     "useTsNode": true,
@@ -82,9 +91,11 @@
     "simple-git": "3.20.0",
     "socket.io": "4.7.2",
     "toad-scheduler": "3.0.0",
+    "typeorm": "0.3.7",
     "uuid": "9.0.1",
     "winston": "3.10.0",
-    "ws": "8.14.2"
+    "ws": "8.14.2",
+    "reflect-metadata": "0.1.13"
   },
   "devDependencies": {
     "@lcov-viewer/cli": "1.3.0",
@@ -131,8 +142,8 @@
     "nock": "13.3.3",
     "prettier": "2.8.8",
     "supertest": "6.3.3",
-    "ts-node": "10.9.1",
-    "typescript": "5.2.2"
+    "ts-node": "10.7.0",
+    "typescript": "4.5.2"
   },
   "resolutions": {
     "got": "11.8.6"

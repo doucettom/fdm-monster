@@ -1,4 +1,4 @@
-import { Floor } from "@/models";
+import { Floor } from "@/models/Floor";
 import { validateInput } from "@/handlers/validators";
 import { NotFoundException } from "@/exceptions/runtime.exceptions";
 import {
@@ -12,7 +12,7 @@ import {
 import { LoggerService } from "@/handlers/logger";
 import { PrinterCache } from "@/state/printer.cache";
 import { mongoIdType } from "@/shared.constants";
-import { IFloorService, UpdateFloorDto } from "@/services/orm/floor-service.interface";
+import { CreateFloorDto, IFloorService, PrinterInFloorDto, UpdateFloorDto } from "@/services/orm/floor-service.interface";
 
 export class FloorService implements IFloorService {
   printerCache: PrinterCache;
@@ -28,47 +28,48 @@ export class FloorService implements IFloorService {
    */
   async list(patchPositions = true) {
     const printers = await this.printerCache.listCachedPrinters(true);
-    const printerIds = printers.map((p) => p.id);
+    // const printerIds = printers.map((p) => p.id);
 
     const floors = await Floor.find({});
     if (!patchPositions) {
       return floors;
     }
 
-    for (const floor of floors) {
-      if (!floor.printers?.length) continue;
+    // TODO this does more harm than good
+    // for (const floor of floors) {
+    //   if (!floor.printers?.length) continue;
 
-      const removedPositionPrinterIds: mongoIdType[] = [];
+    // const removedPositionPrinterIds: mongoIdType[] = [];
 
-      // TODO this is prone to collisions
-      const positionsKnown: { [k: string]: any } = {};
-      for (const fp of floor.printers) {
-        // Remove orphans
-        const stringPrinterId = fp.printerId.toString();
-        const printerExists = printerIds.includes(stringPrinterId);
-        if (!printerExists) {
-          removedPositionPrinterIds.push(stringPrinterId);
-          continue;
-        }
-
-        // Remove duplicate position, keeping the last added one
-        const xyPos = positionsKnown[`${fp.x}${fp.y}`];
-        if (!!xyPos) {
-          removedPositionPrinterIds.push(xyPos.printerId);
-        }
-
-        // Keep last floor printer
-        positionsKnown[`${fp.x}${fp.y}`] = fp;
-      }
-
-      if (removedPositionPrinterIds?.length) {
-        floor.printers = floor.printers.filter((fp) => !removedPositionPrinterIds.includes(fp.printerId));
-        await floor.save();
-        this.logger.warn(
-          `Found ${removedPositionPrinterIds} (floor printerIds) to be in need of removal for floor (duplicate position or non-existing printer)`
-        );
-      }
-    }
+    // TODO this is prone to collisions
+    // const positionsKnown: { [k: string]: any } = {};
+    // for (const fp of floor.printers) {
+    //   // Remove orphans
+    //   const stringPrinterId = fp.printerId.toString();
+    //   const printerExists = printerIds.includes(stringPrinterId);
+    //   if (!printerExists) {
+    //     removedPositionPrinterIds.push(stringPrinterId);
+    //     continue;
+    //   }
+    //
+    //   // Remove duplicate position, keeping the last added one
+    //   const xyPos = positionsKnown[`${fp.x}${fp.y}`];
+    //   if (!!xyPos) {
+    //     removedPositionPrinterIds.push(xyPos.printerId);
+    //   }
+    //
+    //   // Keep last floor printer
+    //   positionsKnown[`${fp.x}${fp.y}`] = fp;
+    // }
+    //
+    // if (removedPositionPrinterIds?.length) {
+    //   floor.printers = floor.printers.filter((fp) => !removedPositionPrinterIds.includes(fp.printerId));
+    //   await floor.save();
+    //   this.logger.warn(
+    //     `Found ${removedPositionPrinterIds} (floor printerIds) to be in need of removal for floor (duplicate position or non-existing printer)`
+    //   );
+    // }
+    // }
 
     return floors;
   }
@@ -95,7 +96,7 @@ export class FloorService implements IFloorService {
    * @returns {Promise<Floor>}
    * @throws {Error} If the floor is not correctly provided.
    */
-  async create(floor) {
+  async create(floor: CreateFloorDto) {
     const validatedInput = await validateInput(floor, createFloorRules);
     return Floor.create(validatedInput);
   }
@@ -142,7 +143,7 @@ export class FloorService implements IFloorService {
     );
   }
 
-  async addOrUpdatePrinter(floorId: mongoIdType, printerInFloor) {
+  async addOrUpdatePrinter(floorId: mongoIdType, printerInFloor: PrinterInFloorDto) {
     const floor = await this.get(floorId, true);
     const validInput = await validateInput(printerInFloor, printerInFloorRules);
 
@@ -150,9 +151,13 @@ export class FloorService implements IFloorService {
     await this.printerCache.getCachedPrinterOrThrowAsync(validInput.printerId);
 
     // Ensure position is not taken twice
-    floor.printers = floor.printers.filter((pif) => !(pif.x === printerInFloor.x && pif.y === printerInFloor.y));
+    floor.printers = floor.printers.filter(
+      (pif: PrinterInFloorDto) => !(pif.x === printerInFloor.x && pif.y === printerInFloor.y)
+    );
 
-    const foundPrinterInFloorIndex = floor.printers.findIndex((pif) => pif.printerId.toString() === validInput.printerId);
+    const foundPrinterInFloorIndex = floor.printers.findIndex(
+      (pif: PrinterInFloorDto) => pif.printerId.toString() === validInput.printerId
+    );
     if (foundPrinterInFloorIndex !== -1) {
       floor.printers[foundPrinterInFloorIndex] = validInput;
     } else {
@@ -170,7 +175,9 @@ export class FloorService implements IFloorService {
     // Ensure printer exists
     await this.printerCache.getCachedPrinterOrThrowAsync(validInput.printerId);
 
-    const foundPrinterInFloorIndex = floor.printers.findIndex((pif) => pif.printerId.toString() === validInput.printerId);
+    const foundPrinterInFloorIndex = floor.printers.findIndex(
+      (pif: PrinterInFloorDto) => pif.printerId.toString() === validInput.printerId
+    );
     if (foundPrinterInFloorIndex === -1) return floor;
     floor.printers.splice(foundPrinterInFloorIndex, 1);
     await floor.save();

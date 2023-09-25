@@ -1,4 +1,4 @@
-import { FloorPosition } from "@/entities/FloorPosition";
+import { FloorPosition } from "@/entities/mikro/FloorPosition";
 import { BaseService } from "@/services/orm/base.service";
 import { EntityManager } from "@mikro-orm/better-sqlite";
 import { sqliteIdType } from "@/shared.constants";
@@ -19,7 +19,6 @@ export class FloorPositionService extends BaseService(FloorPosition) {
 
   toDto(entity: Loaded<FloorPosition>): EntityDTO<Loaded<FloorPosition, never>> {
     return {
-      id: entity.id,
       x: entity.x,
       y: entity.y,
       printerId: entity.printerId,

@@ -1,6 +1,6 @@
-import { BaseEntity } from "@/entities/BaseEntity";
-import { Entity, OneToOne, Property, Rel } from "@mikro-orm/core";
-import { FloorPosition } from "@/entities/FloorPosition";
+import { BaseEntity } from "@/entities/mikro/BaseEntity";
+import { Collection, Entity, ManyToMany, Property } from "@mikro-orm/core";
+import { Floor } from "@/entities/mikro/Floor";
 
 @Entity()
 export class Printer extends BaseEntity {
@@ -19,6 +19,6 @@ export class Printer extends BaseEntity {
   @Property({ nullable: true, default: null })
   disabledReason!: string | null;
 
-  @OneToOne(() => FloorPosition, (p) => p.printer, { nullable: true })
-  position?: Rel<FloorPosition>;
+  @ManyToMany({ entity: () => Floor, mappedBy: (f) => f.printers })
+  position = new Collection<Floor>(this);
 }

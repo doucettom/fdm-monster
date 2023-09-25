@@ -1,11 +1,11 @@
 import { BaseService } from "@/services/orm/base.service";
-import { Floor } from "@/entities";
-import { EntityDTO, Loaded } from "@mikro-orm/core";
+import { Floor } from "@/entities/mikro";
+import { FindOptions, Loaded } from "@mikro-orm/core";
 import { FloorDto, IFloorService, PositionDto } from "@/services/orm/floor-service.interface";
 import { sqliteIdType } from "@/shared.constants";
 import { EntityManager } from "@mikro-orm/better-sqlite";
 import { FloorPositionService } from "./floor-position.service";
-import { FloorPosition } from "@/entities/FloorPosition";
+import { FloorPosition } from "@/entities/mikro/FloorPosition";
 
 export class FloorService2 extends BaseService(Floor) implements IFloorService {
   private floorPositionService: FloorPositionService;
@@ -15,17 +15,34 @@ export class FloorService2 extends BaseService(Floor) implements IFloorService {
     this.floorPositionService = floorPositionService;
   }
 
-  toDto(floor: Loaded<Floor>): EntityDTO<Loaded<Floor, never>> {
+  override async list() {
+    return await this.repository.findAll({
+      populate: ["positions"],
+    });
+  }
+
+  async listWithPositions() {
+    return super.list({ populate: ["positions"] });
+  }
+
+  toDto(floor: Loaded<Floor>): FloorDto {
     return {
       id: floor.id,
       name: floor.name,
       floor: floor.floor,
       positions: floor.positions.map((p) => ({
-        id: p.id,
-        x: p.x,
-        y: p.y,
         printerId: p.printerId,
         floorId: p.floorId,
+        x: p.x,
+        y: p.y,
+      })),
+      printers: floor.printers.map((p) => ({
+        id: p.id,
+        name: p.name,
+        // x: p.x,
+        // y: p.y,
+        // printerId: p.printerId,
+        // floorId: p.floorId,
       })),
     };
   }

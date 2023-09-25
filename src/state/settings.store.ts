@@ -11,7 +11,7 @@ import { getCurrentHub } from "@sentry/node";
 import { isTestEnvironment } from "@/utils/env.utils";
 import { AppConstants } from "@/server.constants";
 import { LoggerService } from "@/handlers/logger";
-import { Settings } from "@/entities";
+import { Settings } from "@/entities/mikro";
 import { SettingsService2 } from "@/services/orm/settings.service";
 
 export class SettingsStore {

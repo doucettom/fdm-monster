@@ -1,11 +1,15 @@
-import { Floor } from "@/entities";
+import { Floor } from "@/entities/mikro";
+import { Floor as MongoFloor } from "@/models/Floor";
 import { sqliteIdType, mongoIdType } from "@/shared.constants";
+import { FindOptions, Loaded } from "@mikro-orm/core";
 
 export type idType = sqliteIdType | mongoIdType;
 export interface IFloorService {
-  list(): Promise<FloorDto[]>;
+  toDto(floor: Loaded<Floor> | typeof MongoFloor): FloorDto;
 
-  create(input: Floor): Promise<FloorDto>;
+  list<P extends string = never>(options?: FindOptions<Floor, P>): Promise<Loaded<Floor, P>[]>;
+
+  create<P extends string = never>(input: Floor): Promise<Loaded<Floor, P>>;
 
   delete(floorId: idType): Promise<boolean>;
 
@@ -28,19 +32,28 @@ export interface IdDto {
 
 export interface PrinterDto extends IdDto {
   name: string;
-  apiKey: string;
-  printerURL: string;
+  // apiKey: string;
+  // printerURL: string;
 }
 
-export interface PositionDto extends IdDto {
+export interface PositionDto {
   x: number;
   y: number;
   printerId: idType;
   floorId: idType;
 }
 
+// MongoDB version
+export interface PrinterInFloorDto extends IdDto {
+  x: number;
+  y: number;
+  printerId: idType;
+}
+
 export interface FloorDto extends IdDto {
+  name: string;
   floor: number;
+  printers: PrinterDto[];
   positions: PositionDto[];
 }
 

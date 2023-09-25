@@ -15,16 +15,20 @@ import { RequestContext } from "@mikro-orm/core";
 import { AppConstants } from "@/server.constants";
 import { join } from "path";
 import { ensureDirExists, superRootPath } from "@/utils/fs.utils";
+import { AppDataSource } from "@/data-source";
 
 export async function setupServer() {
   const dbFolder = process.env[AppConstants.DATABASE_PATH] || "./database";
   ensureDirExists(join(superRootPath(), dbFolder));
+
+  const dataSource = await AppDataSource.initialize();
 
   const mikroORM = await MikroORM.init();
   // Migrating should be done in the boot task next to mongoose migrations
   await mikroORM.getMigrator().up();
   const entityManager = mikroORM.em;
   const providers = {
+    [DITokens.dataSource]: asValue(dataSource),
     [DITokens.orm]: asValue(mikroORM),
     [DITokens.em]: asValue(entityManager),
   };

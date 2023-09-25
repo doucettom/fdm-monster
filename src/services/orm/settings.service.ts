@@ -1,4 +1,4 @@
-import { Settings } from "@/entities";
+import { Settings } from "@/entities/mikro";
 import {
   credentialSettingsKey,
   fileCleanSettingKey,

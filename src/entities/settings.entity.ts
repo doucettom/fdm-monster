@@ -1,4 +1,4 @@
-import { BaseEntity } from "@/entities/BaseEntity";
+import { BaseEntity } from "@/entities/mikro/BaseEntity";
 import {
   credentialSettingsKey,
   fileCleanSettingKey,
@@ -7,11 +7,15 @@ import {
   timeoutSettingKey,
   wizardSettingKey,
 } from "@/constants/server-settings.constants";
-import { Entity, Property } from "@mikro-orm/core";
+import { Entity, Column } from "typeorm";
+import { PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class Settings extends BaseEntity {
-  @Property({ type: "json", nullable: false })
+export class Settings {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ type: "simple-json", nullable: false })
   [serverSettingsKey]!: {
     sentryDiagnosticsEnabled: boolean;
     debugSettings: {
@@ -28,7 +32,7 @@ export class Settings extends BaseEntity {
     whitelistedIpAddresses: string[];
   };
 
-  @Property({ type: "json", nullable: false })
+  @Column({ type: "simple-json", nullable: false })
   [credentialSettingsKey]!: {
     jwtSecret: string; // minlength: 10, trim
     jwtExpiresIn: number;
@@ -36,28 +40,28 @@ export class Settings extends BaseEntity {
     refreshTokenExpiry: number;
   };
 
-  @Property({ type: "json", nullable: false })
+  @Column({ type: "simple-json", nullable: false })
   [wizardSettingKey]!: {
     wizardCompleted: boolean;
     wizardCompletedAt: Date;
     wizardVersion: number;
   };
 
-  @Property({ type: "json", nullable: false })
+  @Column({ type: "simple-json", nullable: false })
   [fileCleanSettingKey]!: {
     autoRemoveOldFilesBeforeUpload: boolean;
     autoRemoveOldFilesAtBoot: boolean;
     autoRemoveOldFilesCriteriumDays: number;
   };
 
-  @Property({ type: "json", nullable: false })
+  @Column({ type: "simple-json", nullable: false })
   [frontendSettingKey]!: {
     gridCols: number;
     gridRows: number;
     largeTiles: boolean;
   };
 
-  @Property({ type: "json", nullable: false })
+  @Column({ type: "simple-json", nullable: false })
   [timeoutSettingKey]!: {
     apiTimeout: number;
   };

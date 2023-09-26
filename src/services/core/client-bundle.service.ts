@@ -5,8 +5,8 @@ import { readdir, rm } from "node:fs/promises";
 import { ensureDirExists, superRootPath } from "@/utils/fs.utils";
 import { checkVersionSatisfiesMinimum } from "@/utils/semver.utils";
 import { AppConstants } from "@/server.constants";
-import { GithubService } from "@/services/github.service";
-import { ConfigService } from "@/services/config.service";
+import { GithubService } from "@/services/core/github.service";
+import { ConfigService } from "@/services/core/config.service";
 import { LoggerService } from "@/handlers/logger";
 
 export class ClientBundleService {

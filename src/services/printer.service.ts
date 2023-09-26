@@ -4,7 +4,6 @@ import { NotFoundException } from "@/exceptions/runtime.exceptions";
 import { validateInput } from "@/handlers/validators";
 import {
   createPrinterRules,
-  updateApiUsernameRule,
   updatePrinterDisabledReasonRule,
   updatePrinterEnabledRule,
 } from "./validators/printer-service.validation";
@@ -12,6 +11,7 @@ import { getDefaultPrinterEntry } from "@/constants/service.constants";
 import { printerEvents } from "@/constants/event.constants";
 import { LoggerService } from "@/handlers/logger";
 import { normalizeURLWithProtocol } from "@/utils/url.utils";
+import { mongoIdType } from "@/shared.constants";
 
 export class PrinterService {
   eventEmitter2: EventEmitter2;
@@ -28,7 +28,7 @@ export class PrinterService {
     });
   }
 
-  async get(printerId) {
+  async get(printerId: mongoIdType) {
     const filter = { _id: printerId };
     const printer = await Printer.findOne(filter);
 
@@ -63,7 +63,7 @@ export class PrinterService {
    * @param updateData
    * @returns {Promise<Query<Document<any, any, unknown> | null, Document<any, any, unknown>, {}, unknown>>}
    */
-  async update(printerId, updateData) {
+  async update(printerId: mongoIdType, updateData) {
     const printer = await this.get(printerId);
 
     updateData.printerURL = normalizeURLWithProtocol(updateData.printerURL);
@@ -81,7 +81,7 @@ export class PrinterService {
     return printer;
   }
 
-  async deleteMany(printerIds, emitEvent = true) {
+  async deleteMany(printerIds: mongoIdType[], emitEvent = true) {
     await Printer.deleteMany({ _id: { $in: printerIds } });
     if (emitEvent) {
       this.eventEmitter2.emit(printerEvents.printersDeleted, { printerIds });
@@ -94,7 +94,7 @@ export class PrinterService {
    * @param {boolean} emitEvent
    * @returns {Promise<Printer>}
    */
-  async delete(printerId, emitEvent = true) {
+  async delete(printerId: mongoIdType, emitEvent = true) {
     const filter = { _id: printerId };
 
     const result = await Printer.findOneAndDelete(filter);
@@ -126,7 +126,7 @@ export class PrinterService {
     return newPrinters;
   }
 
-  async updateLastPrintedFile(printerId, lastPrintedFile) {
+  async updateLastPrintedFile(printerId: mongoIdType, lastPrintedFile) {
     const update = { lastPrintedFile };
     await this.get(printerId);
     const printer = await Printer.findByIdAndUpdate(printerId, update, {
@@ -137,7 +137,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateFlowRate(printerId, flowRate) {
+  async updateFlowRate(printerId: mongoIdType, flowRate) {
     const update = { flowRate };
     await this.get(printerId);
     const printer = await Printer.findByIdAndUpdate(printerId, update, {
@@ -148,7 +148,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateFeedRate(printerId, feedRate) {
+  async updateFeedRate(printerId: mongoIdType, feedRate) {
     const update = { feedRate };
     await this.get(printerId);
     const printer = await Printer.findByIdAndUpdate(printerId, update, {
@@ -159,7 +159,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateConnectionSettings(printerId, { printerURL, apiKey }) {
+  async updateConnectionSettings(printerId: mongoIdType, { printerURL, apiKey }) {
     const update = {
       printerURL: normalizeURLWithProtocol(printerURL),
       apiKey,
@@ -176,7 +176,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateEnabled(printerId, enabled) {
+  async updateEnabled(printerId: mongoIdType, enabled) {
     const update = enabled
       ? {
           enabled,
@@ -195,7 +195,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateDisabledReason(printerId, disabledReason) {
+  async updateDisabledReason(printerId: mongoIdType, disabledReason) {
     const enabled = !disabledReason?.length;
     const update = {
       disabledReason,

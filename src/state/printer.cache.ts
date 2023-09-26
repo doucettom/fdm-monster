@@ -1,7 +1,7 @@
-import { KeyDiffCache } from "@/utils/cache/key-diff.cache";
+import { KeyDiffCache, keyType } from "@/utils/cache/key-diff.cache";
 import { printerEvents } from "@/constants/event.constants";
 import { NotFoundException } from "@/exceptions/runtime.exceptions";
-import { map } from "@/utils/mapper.utils";
+import { mapMongoDb } from "@/utils/mapper.utils";
 import { PrinterService } from "@/services/printer.service";
 import { PrinterDto } from "@/services/orm/floor-service.interface";
 import EventEmitter2 from "eventemitter2";
@@ -12,7 +12,8 @@ interface CachedPrinter {
   printerURL: string;
   enabled: boolean;
   disabledReason: string;
-  printerName: string;
+  printerName?: string;
+  name: string;
   dateAdded: number;
   lastPrintedFile: {
     fileName: string;
@@ -48,10 +49,7 @@ export class PrinterCache extends KeyDiffCache<CachedPrinter> {
     this.eventEmitter2.on(printerEvents.printersDeleted, this.handlePrintersDeleted.bind(this));
   }
 
-  /**
-   * @returns {Promise<Printer>} semi-alike printer model
-   */
-  async loadCache() {
+  async loadCache(): Promise<PrinterDto> {
     const printerDocs = await this.printerService.list();
     const dtos = this.mapArray(printerDocs);
     const keyValues = dtos.map((p) => ({ key: this.getId(p), value: p }));
@@ -75,7 +73,7 @@ export class PrinterCache extends KeyDiffCache<CachedPrinter> {
     return printer;
   }
 
-  getCachedPrinterOrThrow(id: string) {
+  getCachedPrinterOrThrow(id: keyType) {
     const printer = this.keyValueStore[id];
     if (!printer) {
       throw new NotFoundException(`Printer with id ${id} not found`);
@@ -83,17 +81,17 @@ export class PrinterCache extends KeyDiffCache<CachedPrinter> {
     return printer;
   }
 
-  async getNameAsync(id: string) {
+  async getNameAsync(id: keyType) {
     const printer = await this.getCachedPrinterOrThrowAsync(id);
     return printer.name;
   }
 
-  getName(id: string) {
+  getName(id: keyType) {
     const printer = this.getCachedPrinterOrThrow(id);
     return printer.name;
   }
 
-  async getLoginDtoAsync(id: string) {
+  async getLoginDtoAsync(id: keyType) {
     const printer = await this.getCachedPrinterOrThrowAsync(id);
     return {
       printerURL: printer.printerURL,
@@ -101,7 +99,7 @@ export class PrinterCache extends KeyDiffCache<CachedPrinter> {
     };
   }
 
-  getLoginDto(id) {
+  getLoginDto(id: keyType) {
     const printer = this.getCachedPrinterOrThrow(id);
     return {
       printerURL: printer.printerURL,
@@ -120,7 +118,7 @@ export class PrinterCache extends KeyDiffCache<CachedPrinter> {
     await this.setKeyValue(printerDto.id, printerDto, true);
   }
 
-  async handlePrintersDeleted({ printerIds }) {
+  async handlePrintersDeleted({ printerIds }: { printerIds: keyType[] }) {
     await this.deleteKeysBatch(printerIds, true);
   }
 
@@ -135,7 +133,7 @@ export class PrinterCache extends KeyDiffCache<CachedPrinter> {
   }
 
   private map(printerDoc): CachedPrinter {
-    const p = map(printerDoc);
+    const p = mapMongoDb(printerDoc);
     p.printerName = p.settingsAppearance.name;
     delete p.settingsAppearance;
     delete p.fileList;

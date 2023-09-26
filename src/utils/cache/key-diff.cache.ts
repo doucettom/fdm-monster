@@ -1,13 +1,10 @@
 export type keyType = string | number;
+
 export class KeyDiffCache<T> {
   deletedKeys: keyType[] = [];
   updatedKeys: keyType[] = [];
 
   protected keyValueStore: { [key: string]: T } = {};
-
-  private convertToKeyString(key: keyType) {
-    return key?.toString();
-  }
 
   public async getAllValues(): Promise<Array<T>> {
     const keys = Object.keys(this.keyValueStore);
@@ -118,6 +115,10 @@ export class KeyDiffCache<T> {
     if (!this.deletedKeys.includes(key)) {
       this.deletedKeys.push(key);
     }
+  }
+
+  private convertToKeyString(key: keyType) {
+    return key?.toString();
   }
 
   private resetDiffs() {

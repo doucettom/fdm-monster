@@ -11,9 +11,9 @@ import { AppConstants } from "./server.constants";
 import { superRootPath } from "./utils/fs.utils";
 import { SocketIoGateway } from "@/state/socket-io.gateway";
 import { BootTask } from "./tasks/boot.task";
-import { TaskManagerService } from "@/services/task-manager.service";
+import { TaskManagerService } from "@/services/core/task-manager.service";
 import { isProductionEnvironment } from "@/utils/env.utils";
-import { ConfigService } from "@/services/config.service";
+import { ConfigService } from "@/services/core/config.service";
 
 export class ServerHost {
   bootTask: BootTask;

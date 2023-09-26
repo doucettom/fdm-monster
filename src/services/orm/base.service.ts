@@ -1,10 +1,10 @@
-import { BaseEntity } from "@/entities/mikro/BaseEntity";
 import { DEFAULT_PAGE, IBaseService, IPagination } from "@/services/orm/base.interface";
 import { sqliteIdType } from "@/shared.constants";
 import { TypeormService } from "@/services/typeorm/typeorm.service";
 import { DeepPartial, EntityTarget, FindManyOptions, FindOneOptions, Repository } from "typeorm";
 import { validate } from "class-validator";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { BaseEntity } from "@/entities/base.entity";
 
 export function BaseService<T extends BaseEntity, DTO>(entity: EntityTarget<T>) {
   abstract class BaseServiceHost implements IBaseService<T> {

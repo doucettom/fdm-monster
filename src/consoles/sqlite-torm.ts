@@ -4,6 +4,7 @@ process.env[AppConstants.DATABASE_FILE] = ":memory:";
 
 import { AppDataSource } from "@/data-source";
 import { Printer } from "@/entities/printer.entity";
+import { CustomGCode } from "@/entities";
 
 async function main() {
   console.log("Running test sqlite with TypeORM");

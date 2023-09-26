@@ -2,9 +2,10 @@ import { IsAlphanumeric } from "class-validator";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { FloorPosition } from "./floor-position.entity";
 import { PrintCompletion } from "@/entities/print-completion.entity";
+import { BaseEntity } from "@/entities/base.entity";
 
 @Entity()
-export class Printer {
+export class Printer extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 

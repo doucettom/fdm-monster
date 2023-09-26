@@ -93,5 +93,4 @@ export const AppConstants = {
   sentryCustomDsnDefault: "https://164b8028a8a745bba3dbcab991b84ae7@o4503975545733120.ingest.sentry.io/4505101598261248",
 
   debugRoutesKey: "DEBUG_ROUTES",
-  debugMikroOrmKey: "DEBUG_MIKRO_ORM",
 };

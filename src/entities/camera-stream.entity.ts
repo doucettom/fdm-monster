@@ -1,8 +1,9 @@
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { Printer } from "@/entities/printer.entity";
+import { BaseEntity } from "@/entities/base.entity";
 
 @Entity()
-export class CameraStream {
+export class CameraStream extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 

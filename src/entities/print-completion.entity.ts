@@ -1,8 +1,9 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { Printer } from "@/entities/printer.entity";
+import { BaseEntity } from "@/entities/base.entity";
 
 @Entity()
-export class PrintCompletion {
+export class PrintCompletion extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 

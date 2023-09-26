@@ -7,9 +7,10 @@ import {
   wizardSettingKey,
 } from "@/constants/server-settings.constants";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity } from "@/entities/base.entity";
 
 @Entity()
-export class Settings {
+export class Settings extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 

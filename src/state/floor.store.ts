@@ -1,7 +1,7 @@
 import { KeyDiffCache } from "@/utils/cache/key-diff.cache";
 import { FloorService2 } from "@/services/orm/floor.service";
 import { LoggerService } from "@/handlers/logger";
-import { idType, IFloorService } from "@/services/orm/floor-service.interface";
+import { idType, IFloorService } from "@/services/orm/floor.service.interface";
 
 /**
  * A generic cache for printer groups

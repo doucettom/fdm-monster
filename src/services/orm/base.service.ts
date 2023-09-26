@@ -1,13 +1,13 @@
-import { DEFAULT_PAGE, IBaseService, IPagination } from "@/services/orm/base.interface";
-import { sqliteIdType } from "@/shared.constants";
+import { DEFAULT_PAGE, IBaseService, IPagination, Type } from "@/services/orm/base.interface";
+import { SqliteIdType } from "@/shared.constants";
 import { TypeormService } from "@/services/typeorm/typeorm.service";
-import { DeepPartial, EntityTarget, FindManyOptions, FindOneOptions, Repository } from "typeorm";
+import { DeepPartial, EntityNotFoundError, EntityTarget, FindManyOptions, FindOneOptions, Repository } from "typeorm";
 import { validate } from "class-validator";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { BaseEntity } from "@/entities/base.entity";
 
-export function BaseService<T extends BaseEntity, DTO>(entity: EntityTarget<T>) {
-  abstract class BaseServiceHost implements IBaseService<T> {
+export function BaseService<T extends BaseEntity, DTO extends object>(entity: EntityTarget<T>, dto: Type<DTO>) {
+  abstract class BaseServiceHost implements IBaseService<T, DTO> {
     typeormService: TypeormService;
     repository: Repository<T>;
 
@@ -19,8 +19,15 @@ export function BaseService<T extends BaseEntity, DTO>(entity: EntityTarget<T>) 
     // TODO change any to DTO
     abstract toDto(entity: T): DTO;
 
-    async get(id: sqliteIdType) {
-      return this.repository.findOneOrFail({ id } as FindOneOptions<T>);
+    async get(id: SqliteIdType, throwIfNotFound = true) {
+      try {
+        return this.repository.findOneOrFail({ id } as FindOneOptions<T>);
+      } catch (e) {
+        if (throwIfNotFound && e instanceof EntityNotFoundError) {
+          throw new EntityNotFoundError(entity, id);
+        }
+        return undefined;
+      }
     }
 
     async list(options?: FindManyOptions<T>) {
@@ -31,7 +38,7 @@ export function BaseService<T extends BaseEntity, DTO>(entity: EntityTarget<T>) 
       return this.repository.find({ take: page.pageSize, skip: page.pageSize * page.page, ...options });
     }
 
-    async update(id: sqliteIdType, updateDto: QueryDeepPartialEntity<T>) {
+    async update(id: SqliteIdType, updateDto: QueryDeepPartialEntity<T>) {
       const entity = await this.get(id);
       const updateResult = await this.repository.update(entity.id, updateDto);
       if (updateResult.affected === 0) {
@@ -45,8 +52,8 @@ export function BaseService<T extends BaseEntity, DTO>(entity: EntityTarget<T>) 
       return await this.repository.save(entity);
     }
 
-    async delete(id: sqliteIdType) {
-      const entity = await this.get(id);
+    async delete(id: SqliteIdType, throwIfNotFound = true) {
+      const entity = await this.get(id, throwIfNotFound);
       return await this.repository.delete(entity.id);
     }
   }

@@ -1,30 +1,30 @@
 import { Floor } from "@/entities";
 import { Floor as MongoFloor } from "@/models/Floor";
-import { mongoIdType, sqliteIdType } from "@/shared.constants";
-import { FindManyOptions } from "typeorm";
+import { MongoIdType, SqliteIdType } from "@/shared.constants";
+import { DeleteResult, FindManyOptions } from "typeorm";
 
-export type idType = sqliteIdType | mongoIdType;
+export type idType = SqliteIdType | MongoIdType;
 
-export interface IFloorService {
+export interface IFloorService<KeyType> {
   toDto(floor: Floor | typeof MongoFloor): FloorDto;
 
   list(options?: FindManyOptions<Floor>): Promise<Floor[]>;
 
   create(input: Floor): Promise<Floor>;
 
-  delete(floorId: idType): Promise<boolean>;
+  delete(floorId: KeyType): Promise<DeleteResult | boolean>;
 
-  get(floorId: idType): Promise<Floor>;
+  get(floorId: KeyType): Promise<Floor>;
 
-  update(floorId: idType, input: Floor): Promise<Floor>;
+  update(floorId: KeyType, input: Floor): Promise<Floor>;
 
-  updateName(floorId: idType, name: string): Promise<Floor>;
+  updateName(floorId: KeyType, name: string): Promise<Floor>;
 
-  updateLevel(floorId: idType, level: number): Promise<Floor>;
+  updateLevel(floorId: KeyType, level: number): Promise<Floor>;
 
-  addOrUpdatePrinter(floorId: idType, position: PositionDto): Promise<Floor>;
+  addOrUpdatePrinter(floorId: KeyType, position: PositionDto): Promise<Floor>;
 
-  removePrinter(floorId: idType, printerId: idType): Promise<Floor>;
+  removePrinter(floorId: KeyType, printerId: KeyType): Promise<Floor>;
 }
 
 export class IdDto {
@@ -33,8 +33,8 @@ export class IdDto {
 
 export class PrinterDto extends IdDto {
   name: string;
-  // apiKey: string;
-  // printerURL: string;
+  disabledReason: string;
+  dateAdded: number;
 }
 
 export class PositionDto {

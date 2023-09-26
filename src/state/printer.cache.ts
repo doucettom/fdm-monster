@@ -3,7 +3,7 @@ import { printerEvents } from "@/constants/event.constants";
 import { NotFoundException } from "@/exceptions/runtime.exceptions";
 import { mapMongoDb } from "@/utils/mapper.utils";
 import { PrinterService } from "@/services/printer.service";
-import { PrinterDto } from "@/services/orm/floor-service.interface";
+import { PrinterDto } from "@/services/orm/floor.service.interface";
 import EventEmitter2 from "eventemitter2";
 
 interface CachedPrinter {

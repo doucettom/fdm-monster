@@ -20,6 +20,8 @@ import { Role1695591973315 } from "@/migrations/1695591973315-Role";
 import { PrintCompletionRefreshToken1695672874400 } from "@/migrations/1695672874400-PrintCompletion_RefreshToken";
 import { PrinterPrintCompletions1695673511521 } from "@/migrations/1695673511521-PrinterPrintCompletions";
 import { FloorRenames1695734057166 } from "@/migrations/1695734057166-FloorRenames";
+import { PrinterDateAdded1695741444337 } from "@/migrations/1695741444337-PrinterDateAdded";
+import { DateTimeToTimestamp1695743640910 } from "@/migrations/1695743640910-DateTimeToTimestamp";
 
 dotenv.config({
   path: join(superRootPath(), ".env"),
@@ -58,6 +60,8 @@ export const AppDataSource = new DataSource({
     PrintCompletionRefreshToken1695672874400,
     PrinterPrintCompletions1695673511521,
     FloorRenames1695734057166,
+    PrinterDateAdded1695741444337,
+    DateTimeToTimestamp1695743640910,
   ],
   subscribers: [],
 });

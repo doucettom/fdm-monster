@@ -1,11 +1,11 @@
 import { DeleteResult, FindManyOptions, Repository } from "typeorm";
 import { TypeormService } from "@/services/typeorm/typeorm.service";
 
-export interface IBaseService<T extends object> {
+export interface IBaseService<T extends object, DTO extends object> {
   repository: Repository<T>;
   typeormService: TypeormService;
 
-  toDto(entity: T): any;
+  toDto(entity: T): DTO;
 
   list(options?: FindManyOptions<T>): Promise<T[]>;
 

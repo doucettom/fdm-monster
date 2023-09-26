@@ -1,5 +1,5 @@
 import { IsAlphanumeric } from "class-validator";
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { FloorPosition } from "./floor-position.entity";
 import { PrintCompletion } from "@/entities/print-completion.entity";
 import { BaseEntity } from "@/entities/base.entity";
@@ -46,4 +46,7 @@ export class Printer extends BaseEntity {
 
   @OneToMany(() => PrintCompletion, (pc) => pc.printer)
   printCompletions!: Relation<PrintCompletion>[];
+
+  @CreateDateColumn({ type: "int" })
+  dateAdded!: number;
 }

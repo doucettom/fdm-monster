@@ -11,10 +11,10 @@ import {
 } from "./validators/floor-service.validation";
 import { LoggerService } from "@/handlers/logger";
 import { PrinterCache } from "@/state/printer.cache";
-import { mongoIdType } from "@/shared.constants";
-import { CreateFloorDto, IFloorService, PrinterInFloorDto, UpdateFloorDto } from "@/services/orm/floor-service.interface";
+import { MongoIdType } from "@/shared.constants";
+import { CreateFloorDto, IFloorService, PrinterInFloorDto, UpdateFloorDto } from "@/services/orm/floor.service.interface";
 
-export class FloorService implements IFloorService {
+export class FloorService implements IFloorService<MongoIdType> {
   printerCache: PrinterCache;
   logger: LoggerService;
 
@@ -39,7 +39,7 @@ export class FloorService implements IFloorService {
     // for (const floor of floors) {
     //   if (!floor.printers?.length) continue;
 
-    // const removedPositionPrinterIds: mongoIdType[] = [];
+    // const removedPositionPrinterIds: MongoIdType[] = [];
 
     // TODO this is prone to collisions
     // const positionsKnown: { [k: string]: any } = {};
@@ -74,7 +74,7 @@ export class FloorService implements IFloorService {
     return floors;
   }
 
-  async get(floorId: mongoIdType, throwError = true) {
+  async get(floorId: MongoIdType, throwError = true) {
     const floor = await Floor.findOne({ _id: floorId });
     if (!floor && throwError) {
       throw new NotFoundException(`Floor with id ${floorId} does not exist.`);
@@ -101,7 +101,7 @@ export class FloorService implements IFloorService {
     return Floor.create(validatedInput);
   }
 
-  async update(floorId: mongoIdType, input: UpdateFloorDto) {
+  async update(floorId: MongoIdType, input: UpdateFloorDto) {
     const existingFloor = await this.get(floorId);
     const { name, floor, printers } = await validateInput(input, updateFloorRules);
     existingFloor.name = name;
@@ -110,25 +110,25 @@ export class FloorService implements IFloorService {
     return await existingFloor.save();
   }
 
-  async updateName(floorId: mongoIdType, floorName: string) {
+  async updateName(floorId: MongoIdType, floorName: string) {
     const floor = await this.get(floorId);
     const { name } = await validateInput(floorName, updateFloorNameRules);
     floor.name = name;
     return await floor.save();
   }
 
-  async updateLevel(floorId: mongoIdType, level: number) {
+  async updateLevel(floorId: MongoIdType, level: number) {
     const floor = await this.get(floorId);
     const { floor: validLevel } = await validateInput({ floor: level }, updateFloorNumberRules);
     floor.floor = validLevel;
     return await floor.save();
   }
 
-  async getFloorsOfPrinterId(printerId: mongoIdType) {
+  async getFloorsOfPrinterId(printerId: MongoIdType) {
     return Floor.find({ printers: { $elemMatch: { printerId } } });
   }
 
-  async deletePrinterFromAnyFloor(printerId: mongoIdType) {
+  async deletePrinterFromAnyFloor(printerId: MongoIdType) {
     return Floor.updateMany(
       {},
       {
@@ -143,7 +143,7 @@ export class FloorService implements IFloorService {
     );
   }
 
-  async addOrUpdatePrinter(floorId: mongoIdType, printerInFloor: PrinterInFloorDto) {
+  async addOrUpdatePrinter(floorId: MongoIdType, printerInFloor: PrinterInFloorDto) {
     const floor = await this.get(floorId, true);
     const validInput = await validateInput(printerInFloor, printerInFloorRules);
 
@@ -168,7 +168,7 @@ export class FloorService implements IFloorService {
     return floor;
   }
 
-  async removePrinter(floorId: mongoIdType, printerId: mongoIdType) {
+  async removePrinter(floorId: MongoIdType, printerId: MongoIdType) {
     const floor = await this.get(floorId, true);
     const validInput = await validateInput({ printerId }, removePrinterInFloorRules);
 
@@ -184,7 +184,7 @@ export class FloorService implements IFloorService {
     return floor;
   }
 
-  async delete(floorId: mongoIdType) {
+  async delete(floorId: MongoIdType) {
     return Floor.deleteOne({ _id: floorId });
   }
 }

@@ -11,15 +11,22 @@ import { getDefaultPrinterEntry } from "@/constants/service.constants";
 import { printerEvents } from "@/constants/event.constants";
 import { LoggerService } from "@/handlers/logger";
 import { normalizeURLWithProtocol } from "@/utils/url.utils";
-import { mongoIdType } from "@/shared.constants";
+import { MongoIdType } from "@/shared.constants";
+import { IPrinterService } from "@/services/orm/printer.service.interface";
 
-export class PrinterService {
+export class PrinterService implements IPrinterService<MongoIdType> {
   eventEmitter2: EventEmitter2;
   logger: LoggerService;
 
-  constructor({ eventEmitter2, loggerFactory }) {
+  constructor({
+    eventEmitter2,
+    loggerFactory,
+  }: {
+    eventEmitter2: EventEmitter2;
+    loggerFactory: (name: string) => LoggerService;
+  }) {
     this.eventEmitter2 = eventEmitter2;
-    this.logger = loggerFactory("PrinterService");
+    this.logger = loggerFactory(PrinterService.name);
   }
 
   async list() {
@@ -28,7 +35,7 @@ export class PrinterService {
     });
   }
 
-  async get(printerId: mongoIdType) {
+  async get(printerId: MongoIdType) {
     const filter = { _id: printerId };
     const printer = await Printer.findOne(filter);
 
@@ -63,7 +70,7 @@ export class PrinterService {
    * @param updateData
    * @returns {Promise<Query<Document<any, any, unknown> | null, Document<any, any, unknown>, {}, unknown>>}
    */
-  async update(printerId: mongoIdType, updateData) {
+  async update(printerId: MongoIdType, updateData) {
     const printer = await this.get(printerId);
 
     updateData.printerURL = normalizeURLWithProtocol(updateData.printerURL);
@@ -81,30 +88,23 @@ export class PrinterService {
     return printer;
   }
 
-  async deleteMany(printerIds: mongoIdType[], emitEvent = true) {
+  async deleteMany(printerIds: MongoIdType[], emitEvent = true) {
     await Printer.deleteMany({ _id: { $in: printerIds } });
     if (emitEvent) {
       this.eventEmitter2.emit(printerEvents.printersDeleted, { printerIds });
     }
   }
 
-  /**
-   *
-   * @param {string} printerId
-   * @param {boolean} emitEvent
-   * @returns {Promise<Printer>}
-   */
-  async delete(printerId: mongoIdType, emitEvent = true) {
+  async delete(printerId: MongoIdType, emitEvent = true): Promise<void> {
     const filter = { _id: printerId };
 
-    const result = await Printer.findOneAndDelete(filter);
+    await Printer.findOneAndDelete(filter);
     if (emitEvent) {
       this.eventEmitter2.emit(printerEvents.printersDeleted, { printerIds: [printerId] });
     }
-    return result;
   }
 
-  async batchImport(printers) {
+  async batchImport(printers: Partial<typeof Printer>[]) {
     if (!printers?.length) return [];
 
     this.logger.log(`Validating ${printers.length} printer objects`);
@@ -126,7 +126,7 @@ export class PrinterService {
     return newPrinters;
   }
 
-  async updateLastPrintedFile(printerId: mongoIdType, lastPrintedFile) {
+  async updateLastPrintedFile(printerId: MongoIdType, lastPrintedFile) {
     const update = { lastPrintedFile };
     await this.get(printerId);
     const printer = await Printer.findByIdAndUpdate(printerId, update, {
@@ -137,7 +137,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateFlowRate(printerId: mongoIdType, flowRate) {
+  async updateFlowRate(printerId: MongoIdType, flowRate: number) {
     const update = { flowRate };
     await this.get(printerId);
     const printer = await Printer.findByIdAndUpdate(printerId, update, {
@@ -148,7 +148,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateFeedRate(printerId: mongoIdType, feedRate) {
+  async updateFeedRate(printerId: MongoIdType, feedRate: number) {
     const update = { feedRate };
     await this.get(printerId);
     const printer = await Printer.findByIdAndUpdate(printerId, update, {
@@ -159,7 +159,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateConnectionSettings(printerId: mongoIdType, { printerURL, apiKey }) {
+  async updateConnectionSettings(printerId: MongoIdType, { printerURL, apiKey }) {
     const update = {
       printerURL: normalizeURLWithProtocol(printerURL),
       apiKey,
@@ -176,7 +176,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateEnabled(printerId: mongoIdType, enabled) {
+  async updateEnabled(printerId: MongoIdType, enabled) {
     const update = enabled
       ? {
           enabled,
@@ -195,7 +195,7 @@ export class PrinterService {
     return printer;
   }
 
-  async updateDisabledReason(printerId: mongoIdType, disabledReason) {
+  async updateDisabledReason(printerId: MongoIdType, disabledReason: string) {
     const enabled = !disabledReason?.length;
     const update = {
       disabledReason,
@@ -213,12 +213,7 @@ export class PrinterService {
     return printer;
   }
 
-  /**
-   * @private
-   * @param printer
-   * @returns {Promise<Object>}
-   */
-  async validateAndDefault(printer) {
+  private async validateAndDefault(printer): Promise<Object> {
     const mergedPrinter = {
       ...getDefaultPrinterEntry(),
       enabled: true,

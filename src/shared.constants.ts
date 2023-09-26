@@ -1,3 +1,3 @@
-export type sqliteIdType = number;
+export type SqliteIdType = number;
 
-export type mongoIdType = string;
+export type MongoIdType = string;

@@ -8,7 +8,6 @@
   "scripts": {
     "dev": "concurrently \"yarn build:watch\" \"yarn watch-dev\"",
     "watch-dev": "cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/index.js",
-    "console:mikro": "yarn build && cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/consoles/sqlite-mikro.js",
     "console:torm": "yarn build && cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/consoles/sqlite-torm.js",
     "console:migrate": "yarn build && cross-env NODE_ENV=development nodemon --watch \"dist/**/*\" -e js ./dist/consoles/typeorm-migrate.js",
     "console:generate": "yarn build && cross-env NODE_ENV=development node ./dist/consoles/typeorm-generate.js",
@@ -29,12 +28,6 @@
     "typeorm:generate": "yarn torm migration:generate -d src/data-source.ts --pretty src/migrations/CustomGCode",
     "typeorm:migrate": "yarn torm migration:run -d src/data-source.ts",
     "typeorm:revert": "yarn torm migration:revert -d src/data-source.ts"
-  },
-  "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/mikro-orm.config.ts"
-    ]
   },
   "repository": "https://github.com/fdm-monster/fdm-monster",
   "keywords": [

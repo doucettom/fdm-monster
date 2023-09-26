@@ -1,15 +1,15 @@
 export type keyType = string | number;
-export class KeyDiffCache {
+export class KeyDiffCache<T> {
   deletedKeys: keyType[] = [];
   updatedKeys: keyType[] = [];
 
-  protected keyValueStore: { [key: string]: any } = {};
+  protected keyValueStore: { [key: string]: T } = {};
 
   private convertToKeyString(key: keyType) {
     return key?.toString();
   }
 
-  public async getAllValues<T>(): Promise<Array<T>> {
+  public async getAllValues(): Promise<Array<T>> {
     const keys = Object.keys(this.keyValueStore);
     return (await this.getValuesBatch(keys)) as Array<T>;
   }
@@ -18,7 +18,7 @@ export class KeyDiffCache {
     return this.keyValueStore;
   }
 
-  public async getValue<T>(key: keyType): Promise<T> {
+  public async getValue(key: keyType): Promise<T> {
     const keyString = key?.toString();
     if (!keyString?.length) {
       throw new Error("Key must be a non-empty serializable string");
@@ -39,7 +39,7 @@ export class KeyDiffCache {
     };
   }
 
-  protected async setKeyValuesBatch<T>(keyValues: Array<{ key: string; value: T }>, markUpdated: boolean = true) {
+  protected async setKeyValuesBatch(keyValues: Array<{ key: keyType; value: T }>, markUpdated: boolean = true) {
     keyValues.forEach(({ key, value }) => {
       this.setKeyValue(key, value);
     });
@@ -49,7 +49,7 @@ export class KeyDiffCache {
     }
   }
 
-  protected async deleteKeysBatch(keys: Array<string>, markDeleted: boolean = true) {
+  protected async deleteKeysBatch(keys: Array<keyType>, markDeleted: boolean = true) {
     keys.forEach((key) => {
       this.deleteKeyValue(key);
     });
@@ -58,7 +58,7 @@ export class KeyDiffCache {
     }
   }
 
-  protected async getValuesBatch<T>(keys: Array<keyType>): Promise<Array<T>> {
+  protected async getValuesBatch(keys: Array<keyType>): Promise<Array<T>> {
     const keyStrings = keys.map((key) => key?.toString());
     if (keyStrings.some((key) => !key?.length)) {
       throw new Error("Key must be a non-empty serializable string, and one of them is not");
@@ -72,7 +72,7 @@ export class KeyDiffCache {
     return values as Array<T>;
   }
 
-  protected async setKeyValue<T>(key: keyType, value: T, markUpdated: boolean = true) {
+  protected async setKeyValue(key: keyType, value: T, markUpdated: boolean = true) {
     const keyString = this.convertToKeyString(key);
     if (!keyString?.length) {
       throw new Error("Key must be a non-empty serializable string");

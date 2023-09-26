@@ -3,42 +3,41 @@ import { printerEvents } from "@/constants/event.constants";
 import { NotFoundException } from "@/exceptions/runtime.exceptions";
 import { map } from "@/utils/mapper.utils";
 import { PrinterService } from "@/services/printer.service";
+import { PrinterDto } from "@/services/orm/floor-service.interface";
+import EventEmitter2 from "eventemitter2";
 
-// Generate the JSDoc typedef for Printer model
-/**
- * @typedef {Object} CachedPrinter
- * @property {string} id - The id of the printer. (required)
- * @property {string} apiKey - The API key of the printer. (required)
- * @property {string} printerURL - The URL of the printer. (required)
- * @property {boolean} enabled - Indicates if the printer is enabled. (default: true)
- * @property {string} disabledReason - The reason for disabling the printer.
- * @property {string} printerName - The name setting of the printer.
- * @property {number} dateAdded - The date when the printer was added.
- * @property {Object} lastPrintedFile - The details of the last printed file (deprecated).
- * @property {string} lastPrintedFile.fileName - The name of the last printed file.
- * @property {number} lastPrintedFile.editTimestamp - The timestamp when the last printed file was edited.
- * @property {string} lastPrintedFile.parsedColor - The parsed color of the last printed file.
- * @property {number} lastPrintedFile.parsedVisualizationRAL - The parsed visualizationRAL of the last printed file.
- * @property {number} lastPrintedFile.parsedAmount - The parsed amount of the last printed file.
- * @property {string} lastPrintedFile.parsedMaterial - The parsed material of the last printed file.
- * @property {string} lastPrintedFile.parsedOrderCode - The parsed order code of the last printed file.
- * @property {Object} fileList - The list of files in the printer.
- * @property {Array} fileList.files - The array of files in the printer.
- * @property {Array} fileList.folders - The array of folders in the printer.
- * @property {number} fileList.free - The free space available in the printer.
- * @property {number} fileList.total - The total space available in the printer.
- * @property {number} feedRate - The feed rate of the printer.
- * @property {number} flowRate - The flow rate of the printer.
- */
+interface CachedPrinter {
+  id: string;
+  apiKey: string;
+  printerURL: string;
+  enabled: boolean;
+  disabledReason: string;
+  printerName: string;
+  dateAdded: number;
+  lastPrintedFile: {
+    fileName: string;
+    editTimestamp: number;
+    parsedColor: string;
+    parsedVisualizationRAL: number;
+    parsedAmount: number;
+    parsedMaterial: string;
+    parsedOrderCode: string;
+  };
+  fileList: {
+    files: Array<any>;
+    folders: Array<any>;
+    free: number;
+    total: number;
+  };
+  feedRate: number;
+  flowRate: number;
+}
 
-export class PrinterCache extends KeyDiffCache {
+export class PrinterCache extends KeyDiffCache<CachedPrinter> {
   printerService: PrinterService;
-  /**
-   * @type {EventEmitter2}
-   */
-  eventEmitter2;
+  eventEmitter2: EventEmitter2;
 
-  constructor({ printerService, eventEmitter2 }) {
+  constructor({ printerService, eventEmitter2 }: { printerService: PrinterService; eventEmitter2: EventEmitter2 }) {
     super();
     this.printerService = printerService;
     this.eventEmitter2 = eventEmitter2;
@@ -60,10 +59,7 @@ export class PrinterCache extends KeyDiffCache {
     return dtos;
   }
 
-  /**
-   * @returns {Promise<Printer[]>}
-   */
-  async listCachedPrinters(includeDisabled = false) {
+  async listCachedPrinters(includeDisabled = false): Promise<CachedPrinter[]> {
     const printers = await this.getAllValues();
     if (!includeDisabled) {
       return printers.filter((p) => p.enabled);
@@ -71,12 +67,7 @@ export class PrinterCache extends KeyDiffCache {
     return printers;
   }
 
-  /**
-   *
-   * @param {string} id
-   * @returns {Promise<?Printer>}
-   */
-  async getCachedPrinterOrThrowAsync(id) {
+  async getCachedPrinterOrThrowAsync(id: string): Promise<CachedPrinter | null> {
     const printer = await this.getValue(id);
     if (!printer) {
       throw new NotFoundException(`Printer with id ${id} not found`);
@@ -84,7 +75,7 @@ export class PrinterCache extends KeyDiffCache {
     return printer;
   }
 
-  getCachedPrinterOrThrow(id) {
+  getCachedPrinterOrThrow(id: string) {
     const printer = this.keyValueStore[id];
     if (!printer) {
       throw new NotFoundException(`Printer with id ${id} not found`);
@@ -92,17 +83,17 @@ export class PrinterCache extends KeyDiffCache {
     return printer;
   }
 
-  async getNameAsync(id) {
+  async getNameAsync(id: string) {
     const printer = await this.getCachedPrinterOrThrowAsync(id);
     return printer.name;
   }
 
-  getName(id) {
+  getName(id: string) {
     const printer = this.getCachedPrinterOrThrow(id);
     return printer.name;
   }
 
-  async getLoginDtoAsync(id) {
+  async getLoginDtoAsync(id: string) {
     const printer = await this.getCachedPrinterOrThrowAsync(id);
     return {
       printerURL: printer.printerURL,
@@ -133,28 +124,17 @@ export class PrinterCache extends KeyDiffCache {
     await this.deleteKeysBatch(printerIds, true);
   }
 
-  /**
-   * @private
-   */
-  getId(value) {
+  private getId(value) {
     return value.id.toString();
   }
 
-  /**
-   * @private
-   */
-  mapArray(printerDocs) {
+  private mapArray(printerDocs) {
     return printerDocs.map((p) => {
       return this.map(p);
     });
   }
 
-  /**
-   * @private
-   * @param printerDoc
-   * @returns {CachedPrinter}
-   */
-  map(printerDoc) {
+  private map(printerDoc): CachedPrinter {
     const p = map(printerDoc);
     p.printerName = p.settingsAppearance.name;
     delete p.settingsAppearance;

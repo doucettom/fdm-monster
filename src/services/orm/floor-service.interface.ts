@@ -27,17 +27,17 @@ export interface IFloorService {
   removePrinter(floorId: idType, printerId: idType): Promise<Floor>;
 }
 
-export interface IdDto {
+export class IdDto {
   id: idType;
 }
 
-export interface PrinterDto extends IdDto {
+export class PrinterDto extends IdDto {
   name: string;
   // apiKey: string;
   // printerURL: string;
 }
 
-export interface PositionDto {
+export class PositionDto {
   x: number;
   y: number;
   printerId: idType;
@@ -45,28 +45,28 @@ export interface PositionDto {
 }
 
 // MongoDB version
-export interface PrinterInFloorDto extends IdDto {
+export class PrinterInFloorDto extends IdDto {
   x: number;
   y: number;
   printerId: idType;
 }
 
-export interface FloorDto extends IdDto {
+export class FloorDto extends IdDto {
   name: string;
   level: number;
   positions: PositionDto[];
 }
 
-export interface CreateFloorDto {
+export class CreateFloorDto {
   name: string;
   floor: number;
 }
 
-export interface UpdateFloorDto {
+export class UpdateFloorDto {
   name?: string;
   floor?: number;
 }
 
-export interface AddOrUpdatePrinterDto {
+export class AddOrUpdatePrinterDto {
   printerId: idType;
 }

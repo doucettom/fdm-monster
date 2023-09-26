@@ -17,6 +17,8 @@
     "emitDecoratorMetadata": true,
     "moduleResolution": "Node",
     "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": true,
     "paths": {
       "@/*": ["./*"]
     }

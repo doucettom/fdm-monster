@@ -12,8 +12,8 @@ export class Floor {
   @Column({
     unique: true,
   })
-  floorNumber!: number;
+  level!: number;
 
   @OneToMany(() => FloorPosition, (gp) => gp.floor, { eager: true })
-  floorPositions!: Relation<FloorPosition>[];
+  positions!: Relation<FloorPosition>[];
 }

@@ -1,4 +1,4 @@
-import { Settings } from "@/entities/mikro";
+import { Settings } from "@/entities";
 import {
   credentialSettingsKey,
   fileCleanSettingKey,
@@ -14,13 +14,37 @@ import {
   wizardSettingKey,
 } from "@/constants/server-settings.constants";
 import { BaseService } from "@/services/orm/base.service";
+import { NotFoundException } from "@/exceptions/runtime.exceptions";
 
-export class SettingsService2 extends BaseService(Settings) {
+export interface SettingsDto {
+  // TODO model
+  id: number;
+  [serverSettingsKey]: any;
+  [frontendSettingKey]: any;
+  [fileCleanSettingKey]: any;
+  [credentialSettingsKey]: any;
+  [wizardSettingKey]: any;
+  [timeoutSettingKey]: any;
+}
+
+export class SettingsService2 extends BaseService<Settings, SettingsDto>(Settings) {
+  toDto(entity: Settings): SettingsDto {
+    return {
+      id: entity.id,
+      [serverSettingsKey]: entity[serverSettingsKey],
+      [frontendSettingKey]: entity[frontendSettingKey],
+      [fileCleanSettingKey]: entity[fileCleanSettingKey],
+      [credentialSettingsKey]: entity[credentialSettingsKey],
+      [wizardSettingKey]: entity[wizardSettingKey],
+      [timeoutSettingKey]: entity[timeoutSettingKey],
+    };
+  }
+
   async getOrCreate() {
-    const settings = await this.getSettings();
+    const settings = await this.get();
 
     if (!settings) {
-      const settings = this.repository.create({
+      const settings = this.create({
         [serverSettingsKey]: getDefaultServerSettings(),
         [credentialSettingsKey]: getDefaultCredentialSettings(),
         [wizardSettingKey]: getDefaultWizardSettings(),
@@ -28,7 +52,6 @@ export class SettingsService2 extends BaseService(Settings) {
         [frontendSettingKey]: getDefaultFrontendSettings(),
         [timeoutSettingKey]: getDefaultTimeout(),
       });
-      await this.em.persistAndFlush(settings);
       return settings;
     }
 
@@ -55,37 +78,37 @@ export class SettingsService2 extends BaseService(Settings) {
   }
 
   async updateServerSettings(serverSettings) {
-    const settingsDoc = await this.getOrCreate();
-    settingsDoc[serverSettingsKey] = serverSettings;
-    await this.em.persistAndFlush(settingsDoc);
-    return settingsDoc;
+    const entity = await this.getOrCreate();
+    entity[serverSettingsKey] = serverSettings;
+    await this.update(entity.id, entity);
+    return entity;
   }
 
   async updateCredentialSettings(credentialSettings) {
     const entity = await this.getOrCreate();
     entity[credentialSettingsKey] = credentialSettings;
-    await this.em.persistAndFlush(entity);
+    await this.update(entity.id, entity);
     return entity;
   }
 
   async updateFileCleanSettings(fileCleanSettings) {
     const entity = await this.getOrCreate();
     entity[fileCleanSettingKey] = fileCleanSettings;
-    await this.em.persistAndFlush(entity);
+    await this.update(entity.id, entity);
     return entity;
   }
 
   async updateFrontendSettings(frontendSettings) {
     const entity = await this.getOrCreate();
     entity[frontendSettingKey] = frontendSettings;
-    await this.em.persistAndFlush(entity);
+    await this.update(entity.id, entity);
     return entity;
   }
 
   async updateTimeoutSettings(timeoutSettings) {
     const entity = await this.getOrCreate();
     entity[timeoutSettingKey] = timeoutSettings;
-    await this.em.persistAndFlush(entity);
+    await this.update(entity.id, entity);
     return entity;
   }
 
@@ -106,16 +129,12 @@ export class SettingsService2 extends BaseService(Settings) {
   async updateWizardSettings(wizardSettings) {
     const entity = await this.getOrCreate();
     entity[wizardSettingKey] = wizardSettings;
-    await this.em.persistAndFlush(entity);
+    await this.update(entity.id, entity);
     return entity;
   }
 
-  private async getSettings() {
-    const settingsRows = await this.repository.findAll({ limit: 1 });
-    if (!settingsRows?.length) {
-      return null;
-    }
-
-    return settingsRows[0];
+  async get() {
+    const settingsList = await this.repository.find({ take: 1 });
+    return settingsList?.length ? settingsList[0] : null;
   }
 }

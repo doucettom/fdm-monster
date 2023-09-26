@@ -1,4 +1,3 @@
-import { BaseEntity } from "@/entities/mikro/BaseEntity";
 import {
   credentialSettingsKey,
   fileCleanSettingKey,
@@ -7,8 +6,7 @@ import {
   timeoutSettingKey,
   wizardSettingKey,
 } from "@/constants/server-settings.constants";
-import { Entity, Column } from "typeorm";
-import { PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Settings {
@@ -43,7 +41,7 @@ export class Settings {
   @Column({ type: "simple-json", nullable: false })
   [wizardSettingKey]!: {
     wizardCompleted: boolean;
-    wizardCompletedAt: Date;
+    wizardCompletedAt: Date | null;
     wizardVersion: number;
   };
 

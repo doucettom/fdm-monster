@@ -18,9 +18,7 @@ import { UserService } from "@/services/authentication/user.service";
 import { PluginRepositoryCache } from "@/services/octoprint/plugin-repository.cache";
 import { ClientBundleService } from "@/services/client-bundle.service";
 import { SettingsService2 } from "@/services/orm/settings.service";
-import { UseRequestContext } from "@mikro-orm/core";
-import { MikroORM } from "@mikro-orm/better-sqlite";
-import * as console from "console";
+import { TypeormService } from "@/services/typeorm/typeorm.service";
 
 export class BootTask {
   logger: LoggerService;
@@ -39,7 +37,7 @@ export class BootTask {
   pluginFirmwareUpdateService: PluginFirmwareUpdateService;
   clientBundleService: ClientBundleService;
   configService: ConfigService;
-  protected orm: MikroORM;
+  typeormService: TypeormService;
 
   constructor({
     loggerFactory,
@@ -58,7 +56,7 @@ export class BootTask {
     pluginFirmwareUpdateService,
     clientBundleService,
     configService,
-    orm,
+    typeormService,
   }) {
     this.serverTasks = serverTasks;
     this.settingsService = settingsService;
@@ -76,7 +74,7 @@ export class BootTask {
     this.logger = loggerFactory(BootTask.name);
     this.clientBundleService = clientBundleService;
     this.configService = configService;
-    this.orm = orm;
+    this.typeormService = typeormService;
   }
 
   async runOnce() {
@@ -87,8 +85,9 @@ export class BootTask {
     await this.run();
   }
 
-  @UseRequestContext()
   async run() {
+    await this.typeormService.createConnection();
+
     try {
       await this.createConnection();
       await this.migrateDatabase();

@@ -1,17 +1,21 @@
-import { EntityManager, EntityRepository } from "@mikro-orm/better-sqlite";
-import { FindOptions } from "@mikro-orm/core";
+import { DeleteResult, FindManyOptions, Repository } from "typeorm";
+import { TypeormService } from "@/services/typeorm/typeorm.service";
 
 export interface IBaseService<T extends object> {
-  repository: EntityRepository<T>;
-  em: EntityManager;
+  repository: Repository<T>;
+  typeormService: TypeormService;
 
-  list<P extends string = never>(options?: FindOptions<T, P>): Promise<T[]>;
+  toDto(entity: T): any;
+
+  list(options?: FindManyOptions<T>): Promise<T[]>;
 
   listPaged(page: IPagination): Promise<T[]>;
 
+  get(id: number): Promise<T | null>;
+
   create(dto: T): Promise<T>;
 
-  delete(id: number): Promise<void>;
+  delete(id: number): Promise<DeleteResult>;
 }
 
 export const DEFAULT_PAGE: IPagination = {

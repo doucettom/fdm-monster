@@ -1,8 +1,6 @@
 // Patch BetterSqlitePlatform
 import { BetterSqlitePlatform, defineConfig } from "@mikro-orm/better-sqlite";
-BetterSqlitePlatform.prototype.supportsDownMigrations = () => true;
-
-import { LoadStrategy, Options, PopulateHint, ReflectMetadataProvider } from "@mikro-orm/core";
+import { LoadStrategy, Options, ReflectMetadataProvider } from "@mikro-orm/core";
 import { isProductionEnvironment } from "@/utils/env.utils";
 import { AppConstants } from "@/server.constants";
 import dotenv from "dotenv";
@@ -12,6 +10,8 @@ import { Printer } from "@/entities/mikro/Printer";
 import { Settings } from "@/entities/mikro/Settings";
 import { Floor } from "@/entities/mikro/Floor";
 import { FloorPosition } from "@/entities/mikro/FloorPosition";
+
+BetterSqlitePlatform.prototype.supportsDownMigrations = () => true;
 
 dotenv.config({
   path: join(superRootPath(), ".env"),

@@ -11,7 +11,7 @@ import { getCurrentHub } from "@sentry/node";
 import { isTestEnvironment } from "@/utils/env.utils";
 import { AppConstants } from "@/server.constants";
 import { LoggerService } from "@/handlers/logger";
-import { Settings } from "@/entities/mikro";
+import { Settings } from "@/entities";
 import { SettingsService2 } from "@/services/orm/settings.service";
 
 export class SettingsStore {
@@ -19,7 +19,13 @@ export class SettingsStore {
   logger: LoggerService;
   private settings: Settings | null = null;
 
-  constructor({ settingsService, loggerFactory }) {
+  constructor({
+    settingsService,
+    loggerFactory,
+  }: {
+    settingsService: SettingsService2;
+    loggerFactory: (context: string) => LoggerService;
+  }) {
     this.settingsService = settingsService;
     this.logger = loggerFactory(SettingsStore.name);
   }

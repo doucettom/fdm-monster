@@ -1,29 +1,30 @@
-import { Floor } from "@/entities/mikro";
+import { Floor } from "@/entities";
 import { Floor as MongoFloor } from "@/models/Floor";
-import { sqliteIdType, mongoIdType } from "@/shared.constants";
-import { FindOptions, Loaded } from "@mikro-orm/core";
+import { mongoIdType, sqliteIdType } from "@/shared.constants";
+import { FindManyOptions } from "typeorm";
 
 export type idType = sqliteIdType | mongoIdType;
+
 export interface IFloorService {
-  toDto(floor: Loaded<Floor> | typeof MongoFloor): FloorDto;
+  toDto(floor: Floor | typeof MongoFloor): FloorDto;
 
-  list<P extends string = never>(options?: FindOptions<Floor, P>): Promise<Loaded<Floor, P>[]>;
+  list(options?: FindManyOptions<Floor>): Promise<Floor[]>;
 
-  create<P extends string = never>(input: Floor): Promise<Loaded<Floor, P>>;
+  create(input: Floor): Promise<Floor>;
 
   delete(floorId: idType): Promise<boolean>;
 
-  get(floorId: idType): Promise<FloorDto>;
+  get(floorId: idType): Promise<Floor>;
 
-  update(floorId: idType, input: Floor): Promise<FloorDto>;
+  update(floorId: idType, input: Floor): Promise<Floor>;
 
-  updateName(floorId: idType, name: string): Promise<FloorDto>;
+  updateName(floorId: idType, name: string): Promise<Floor>;
 
-  updateFloorNumber(floorId: idType, floor: number): Promise<FloorDto>;
+  updateLevel(floorId: idType, level: number): Promise<Floor>;
 
-  addOrUpdatePrinter(floorId: idType, position: PositionDto): Promise<FloorDto>;
+  addOrUpdatePrinter(floorId: idType, position: PositionDto): Promise<Floor>;
 
-  removePrinter(floorId: idType, printerId: idType): Promise<FloorDto>;
+  removePrinter(floorId: idType, printerId: idType): Promise<Floor>;
 }
 
 export interface IdDto {
@@ -52,8 +53,7 @@ export interface PrinterInFloorDto extends IdDto {
 
 export interface FloorDto extends IdDto {
   name: string;
-  floor: number;
-  printers: PrinterDto[];
+  level: number;
   positions: PositionDto[];
 }
 

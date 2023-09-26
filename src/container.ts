@@ -61,15 +61,15 @@ import { AuthService } from "./services/authentication/auth.service";
 import { SettingsService2 } from "@/services/orm/settings.service";
 import { FloorService2 } from "@/services/orm/floor.service";
 import { FloorPositionService } from "@/services/orm/floor-position.service";
+import { TypeormService } from "@/services/typeorm/typeorm.service";
 
-export function configureContainer(legacyMode: boolean = true, providers: any = {}) {
+export function configureContainer(legacyMode: boolean = true) {
   // Create the container and set the injectionMode to PROXY (which is also the default).
   const container = createContainer({
     injectionMode: InjectionMode.PROXY,
   });
 
   container.register({
-    ...providers,
     // -- asValue/asFunction constants --
     [DITokens.serverTasks]: asValue(ServerTasks),
     [DITokens.appDefaultRole]: asValue(ROLES.GUEST),
@@ -78,6 +78,7 @@ export function configureContainer(legacyMode: boolean = true, providers: any = 
       return process.env[AppConstants.VERSION_KEY];
     }),
     [DITokens.socketFactory]: asClass(SocketFactory).transient(), // Factory function, transient on purpose!
+    [DITokens.typeormService]: asClass(TypeormService).singleton(),
 
     // V1.6.0 capable services
     [DITokens.settingsService]: legacyMode ? asClass(SettingsService) : asClass(SettingsService2),

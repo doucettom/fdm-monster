@@ -23,7 +23,19 @@ export class ServerHost {
   configService: ConfigService;
   private logger: LoggerService;
 
-  constructor({ loggerFactory, bootTask, taskManagerService, socketIoGateway, configService }) {
+  constructor({
+    loggerFactory,
+    bootTask,
+    taskManagerService,
+    socketIoGateway,
+    configService,
+  }: {
+    loggerFactory: (context: string) => LoggerService;
+    bootTask: BootTask;
+    taskManagerService: TaskManagerService;
+    socketIoGateway: SocketIoGateway;
+    configService: ConfigService;
+  }) {
     this.logger = loggerFactory(ServerHost.name);
     this.bootTask = bootTask;
     this.taskManagerService = taskManagerService;
@@ -103,7 +115,7 @@ export class ServerHost {
     }
 
     const hostOrFqdn = "0.0.0.0";
-    const server = this.appInstance!.listen(port, hostOrFqdn, () => {
+    const server = this.appInstance!.listen(parseInt(port), hostOrFqdn, () => {
       this.logger.log(`Server started... open it at http://127.0.0.1:${port}`);
     });
     this.socketIoGateway.attachServer(server);

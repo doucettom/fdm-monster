@@ -1,12 +1,11 @@
+import { TypeormService } from "@/services/typeorm/typeorm.service";
+
 export const DITokens = {
   // Values
   serverVersion: "serverVersion",
   appDefaultRole: "appDefaultRole",
   appDefaultRoleNoLogin: "appDefaultRoleNoLogin",
-  // Dynamically registered
-  dataSource: "dataSource",
-  orm: "orm",
-  em: "em",
+  typeormService: "typeormService",
   // Instances
   serverHost: "serverHost",
   loggerFactory: "loggerFactory",

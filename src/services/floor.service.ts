@@ -117,7 +117,7 @@ export class FloorService implements IFloorService {
     return await floor.save();
   }
 
-  async updateFloorNumber(floorId: mongoIdType, level: number) {
+  async updateLevel(floorId: mongoIdType, level: number) {
     const floor = await this.get(floorId);
     const { floor: validLevel } = await validateInput({ floor: level }, updateFloorNumberRules);
     floor.floor = validLevel;

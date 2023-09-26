@@ -19,6 +19,7 @@ import { Role } from "@/entities/role.entity";
 import { Role1695591973315 } from "@/migrations/1695591973315-Role";
 import { PrintCompletionRefreshToken1695672874400 } from "@/migrations/1695672874400-PrintCompletion_RefreshToken";
 import { PrinterPrintCompletions1695673511521 } from "@/migrations/1695673511521-PrinterPrintCompletions";
+import { FloorRenames1695734057166 } from "@/migrations/1695734057166-FloorRenames";
 
 dotenv.config({
   path: join(superRootPath(), ".env"),
@@ -56,6 +57,7 @@ export const AppDataSource = new DataSource({
     Role1695591973315,
     PrintCompletionRefreshToken1695672874400,
     PrinterPrintCompletions1695673511521,
+    FloorRenames1695734057166,
   ],
   subscribers: [],
 });

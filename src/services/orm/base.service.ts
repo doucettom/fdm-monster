@@ -1,49 +1,53 @@
-import { EntityManager, EntityRepository } from "@mikro-orm/better-sqlite";
-import { EntityDTO, EntityName, FilterQuery, FindOptions, Loaded, wrap } from "@mikro-orm/core";
 import { BaseEntity } from "@/entities/mikro/BaseEntity";
 import { DEFAULT_PAGE, IBaseService, IPagination } from "@/services/orm/base.interface";
 import { sqliteIdType } from "@/shared.constants";
+import { TypeormService } from "@/services/typeorm/typeorm.service";
+import { DeepPartial, EntityTarget, FindManyOptions, FindOneOptions, Repository } from "typeorm";
+import { validate } from "class-validator";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-export function BaseService<T extends BaseEntity, DTO>(entity: EntityName<T>) {
+export function BaseService<T extends BaseEntity, DTO>(entity: EntityTarget<T>) {
   abstract class BaseServiceHost implements IBaseService<T> {
-    em: EntityManager;
-    repository: EntityRepository<T>;
+    typeormService: TypeormService;
+    repository: Repository<T>;
 
-    constructor({ em }: { em: EntityManager }) {
-      this.em = em;
-      this.repository = em.getRepository(entity) as EntityRepository<T>;
+    protected constructor({ typeormService }: { typeormService: TypeormService }) {
+      this.typeormService = typeormService;
+      this.repository = typeormService.getDataSource().getRepository(entity);
     }
 
-    abstract toDto<P extends string = never>(entity: Loaded<T, P>): DTO;
+    // TODO change any to DTO
+    abstract toDto(entity: T): DTO;
 
-    async get<P extends string = never>(id: sqliteIdType) {
-      return this.repository.findOneOrFail<P>({ id } as FilterQuery<T>);
+    async get(id: sqliteIdType) {
+      return this.repository.findOneOrFail({ id } as FindOneOptions<T>);
     }
 
-    async list<P extends string = never>(options?: FindOptions<T, P>) {
-      return this.repository.findAll(options);
+    async list(options?: FindManyOptions<T>) {
+      return this.repository.find(options);
     }
 
-    async listPaged<P extends string = never>(page: IPagination = DEFAULT_PAGE, options?: FindOptions<T, P>) {
-      return this.repository.findAll({ limit: page.pageSize, offset: page.pageSize * page.page, ...options });
+    async listPaged(page: IPagination = DEFAULT_PAGE, options?: FindManyOptions<T>) {
+      return this.repository.find({ take: page.pageSize, skip: page.pageSize * page.page, ...options });
     }
 
-    async update<P extends string = never>(id: sqliteIdType, updateDto: Partial<EntityDTO<Loaded<T, P>>>) {
-      const entity = await this.get<P>(id);
-      wrap(entity).assign(updateDto);
-      await this.em.persistAndFlush(entity);
+    async update(id: sqliteIdType, updateDto: QueryDeepPartialEntity<T>) {
+      const entity = await this.get(id);
+      const updateResult = await this.repository.update(entity.id, updateDto);
+      if (updateResult.affected === 0) {
+      }
       return entity;
     }
 
-    async create<P extends string = never>(dto: T) {
-      const entity = this.repository.create<P>(dto);
-      await this.em.persistAndFlush(entity);
-      return entity;
+    async create(dto: DeepPartial<T>) {
+      const entity = this.repository.create(dto);
+      await validate(entity);
+      return await this.repository.save(entity);
     }
 
-    async delete<P extends string = never>(id: sqliteIdType) {
-      const entity = await this.get<P>(id);
-      await this.em.removeAndFlush(entity);
+    async delete(id: sqliteIdType) {
+      const entity = await this.get(id);
+      return await this.repository.delete(entity.id);
     }
   }
 

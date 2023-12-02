@@ -50,14 +50,14 @@ export class FileCache {
       throw new ValidationException("Parameter printerId was not provided.");
     }
 
-    const fileStorage = this.printerFiles[printerId];
+    const fileStorage = this.printerFileStorage[printerId];
 
     if (!fileStorage) {
       this.logger.warn("Did not remove printer File Storage as it was not found");
       return;
     }
 
-    delete this.printerFiles[printerId];
+    delete this.printerFileStorage[printerId];
 
     this.logger.log(`Purged printerId '${printerId}' file cache`);
   }

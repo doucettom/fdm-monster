@@ -199,7 +199,7 @@ export class PrinterFilesController {
       await this.printerFileCleanTask.cleanPrinterFiles(currentPrinterId);
     }
 
-    const token = this.multerService.startTrackingSession(files);
+    const token = this.multerService.startTrackingSession(uploadedFile);
     const response = await this.octoPrintApiService.uploadFileAsMultiPart(
       printerLogin,
       uploadedFile,
@@ -213,44 +213,6 @@ export class PrinterFilesController {
     if (response.success !== false && response?.files?.local?.path?.length) {
       const file = await this.octoPrintApiService.getFile(printerLogin, response?.files?.local?.path);
       await this.printerFilesStore.appendOrSetPrinterFile(currentPrinterId, file);
-    }
-
-    res.send(response);
-  }
-
-  /**
-   * This endpoint is not actively used. Its better to introduce a virtual file system (VFS) to be able to manage centralized uploads.
-   */
-  async localUploadFile(req: Request, res: Response) {
-    const { currentPrinterId, printerLogin } = getScopedPrinter(req);
-    const { select, print, localLocation } = await validateInput(req.body, localFileUploadRules);
-
-    if (!localLocation.endsWith(".gcode")) {
-      throw new ValidationException({
-        localLocation: "The indicated file extension did not match '.gcode'",
-      });
-    }
-
-    if (!existsSync(localLocation)) {
-      throw new NotFoundException("The indicated file was not found.");
-    }
-
-    if (lstatSync(localLocation).isDirectory()) {
-      throw new ValidationException({
-        localLocation: "The indicated file was not correctly found.",
-      });
-    }
-
-    const stream = createReadStream(localLocation);
-    const response = await this.octoPrintApiService.uploadFileAsMultiPart(printerLogin, stream, {
-      select,
-      print,
-    });
-
-    // TODO update file cache with files store
-    if (response.success !== false) {
-      const newOrUpdatedFile = response.files.local;
-      await this.printerFilesStore.appendOrSetPrinterFile(currentPrinterId, newOrUpdatedFile);
     }
 
     res.send(response);
